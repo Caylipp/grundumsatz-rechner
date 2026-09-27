@@ -1,0 +1,19 @@
+{
+  "name": "@grundumsatz/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rechenlogik des Grundumsatz-Rechners: Formel-Kaskade, Konfidenzbereiche, Erklärungen, adaptiver TDEE.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.2"
+  }
+}

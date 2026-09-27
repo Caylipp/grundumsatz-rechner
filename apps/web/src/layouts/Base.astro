@@ -1,0 +1,143 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description, jsonLd = [] } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const nav = [
+  { href: '/', label: 'Rechner' },
+  { href: '/methodik/', label: 'So rechnen wir' },
+];
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#0f7b5f" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+  </head>
+  <body>
+    <a class="sr-only" href="#main">Zum Inhalt springen</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/">
+          <img src="/icon.svg" alt="" width="28" height="28" />
+          <span>Grundumsatz-Rechner</span>
+        </a>
+        <nav aria-label="Hauptnavigation">
+          {
+            nav.map((n) => (
+              <a href={n.href} aria-current={(n.href.replace(/\/$/, '') || '/') === path ? 'page' : undefined}>
+                {n.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p class="disclaimer">
+          <strong>Keine medizinische Beratung.</strong> Die Ergebnisse sind Schätzungen auf Basis wissenschaftlicher Formeln und ersetzen
+          keine ärztliche oder ernährungstherapeutische Beratung. Bei Erkrankungen, in der Schwangerschaft und bei Essstörungen bitte
+          fachlichen Rat einholen.
+        </p>
+        <p class="muted small">
+          Datenschutz: Alle Eingaben werden ausschließlich lokal in deinem Browser verarbeitet und gespeichert. Es gibt keine Konten,
+          keine Cookies und kein Tracking.
+        </p>
+        <nav class="footer-nav small" aria-label="Rechtliches">
+          <a href="/methodik/">Methodik &amp; Quellen</a>
+          <a href="/datenschutz/">Datenschutz</a>
+          <a href="/impressum/">Impressum</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      if ('serviceWorker' in navigator && location.protocol === 'https:') {
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 60px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+  nav {
+    display: flex;
+    gap: 18px;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--text);
+  }
+  nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+  }
+  .site-footer {
+    margin-top: 64px;
+    padding: 32px 0 96px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .disclaimer {
+    max-width: 760px;
+    font-size: 0.92rem;
+  }
+  .footer-nav {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+</style>

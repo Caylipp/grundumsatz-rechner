@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://grundumsatz-rechner.example/sitemap.xml

@@ -1,0 +1,203 @@
+---
+import Base from '../layouts/Base.astro';
+import { BODY_FAT_SOURCES, PAL_LEVELS, SPORT_LEVELS } from '@grundumsatz/core';
+
+const de = (x: number) => String(x).replace('.', ',');
+const sources = (['dexa', 'bodpod', 'caliper', 'navy', 'bia', 'visual'] as const).map((id) => BODY_FAT_SOURCES[id]);
+---
+
+<Base
+  title="Methodik: So berechnen wir deinen Grundumsatz | Grundumsatz-Rechner"
+  description="Formeln (Mifflin-St Jeor, Katch-McArdle, Cunningham, Navy-Methode), Konfidenzbereiche, Korrekturfaktoren und adaptiver Verbrauch – transparent erklärt mit Quellen."
+>
+  <article class="wrap prose">
+    <h1>So rechnen wir</h1>
+    <p class="lead">
+      Kein Rechner kennt deinen Grundumsatz genau – nur eine Messung im Labor (indirekte Kalorimetrie) kommt nah heran. Wir machen das
+      Beste aus deinen Angaben und sagen ehrlich dazu, wie sicher das Ergebnis ist. Hier steht jeder Rechenschritt.
+    </p>
+
+    <nav class="toc card" aria-label="Inhalt">
+      <ol>
+        <li><a href="#kaskade">Die Formel-Kaskade</a></li>
+        <li><a href="#basis">Stufe 1: Mifflin-St Jeor</a></li>
+        <li><a href="#ffm">Stufe 2: Fettfreie Masse</a></li>
+        <li><a href="#navy">Stufe 3: Navy-Methode</a></li>
+        <li><a href="#kombination">Formeln kombinieren</a></li>
+        <li><a href="#faktoren">Stufe 4: Weitere Faktoren</a></li>
+        <li><a href="#pal">Gesamtumsatz (PAL)</a></li>
+        <li><a href="#adaptiv">Stufe 5: Echter Verbrauch aus dem Verlauf</a></li>
+        <li><a href="#bereich">Was der Bereich bedeutet</a></li>
+        <li><a href="#quellen">Quellen</a></li>
+      </ol>
+    </nav>
+
+    <h2 id="kaskade">Die Formel-Kaskade</h2>
+    <p>Je nachdem, welche Angaben vorliegen, wählt der Rechner die beste Methode – und kombiniert sie, wenn mehrere passen:</p>
+    <ol>
+      <li><strong>Basisdaten</strong> (Geschlecht, Alter, Größe, Gewicht) → Mifflin-St Jeor, ca. ± 10 %.</li>
+      <li><strong>Körperfettanteil</strong> → fettfreie Masse → Katch-McArdle bzw. Cunningham.</li>
+      <li><strong>Taille, Hals (und Hüfte)</strong> → Körperfett nach der Navy-Methode → wie Stufe 2.</li>
+      <li><strong>Weitere Faktoren</strong> (Schilddrüse, Schwangerschaft, Schlaf, Klima, Diät, Rauchen) → Korrekturen und Hinweise.</li>
+      <li><strong>Verlauf</strong> von Gewicht und Kalorien über 2–4 Wochen → tatsächlicher Verbrauch.</li>
+    </ol>
+
+    <h2 id="basis">Stufe 1: Mifflin-St Jeor</h2>
+    <p>Die Formel von Mifflin und St Jeor (1990) gilt in Übersichtsarbeiten als die zuverlässigste Standardformel für gesunde Erwachsene:</p>
+    <code class="formula">Männer: 10 × Gewicht [kg] + 6,25 × Größe [cm] − 5 × Alter [J] + 5</code>
+    <code class="formula">Frauen: 10 × Gewicht [kg] + 6,25 × Größe [cm] − 5 × Alter [J] − 161</code>
+    <p>
+      Sie trifft bei rund 80 % der normalgewichtigen Menschen auf ± 10 % genau (Frankenfield et al. 2005). Bei starkem Über- oder
+      Untergewicht und ab 65 Jahren streut sie stärker; wir setzen dann ± 11,5 bis ± 15 % an. Die revidierte Harris-Benedict-Formel zeigen
+      wir nur zum Vergleich – sie überschätzt den Grundumsatz meist leicht.
+    </p>
+
+    <h2 id="ffm">Stufe 2: Fettfreie Masse</h2>
+    <p>
+      Muskeln und Organe verbrauchen in Ruhe ein Vielfaches dessen, was Fettgewebe benötigt. Zwei Menschen mit gleichem Gewicht, aber
+      unterschiedlichem Körperfett haben deshalb verschiedene Grundumsätze. Formeln auf Basis der fettfreien Masse (FFM) erfassen das:
+    </p>
+    <code class="formula">FFM = Gewicht × (1 − Körperfett % / 100)</code>
+    <code class="formula">Katch-McArdle: 370 + 21,6 × FFM [kg]</code>
+    <code class="formula">Cunningham: 500 + 22 × FFM [kg]  (bei viel Muskelmasse)</code>
+    <p>
+      Wie gut das funktioniert, hängt vor allem von der Genauigkeit des Körperfettwerts ab. Wir rechnen mit diesen typischen
+      Messunsicherheiten (± Prozentpunkte, ca. 80 %):
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Methode</th><th>Unsicherheit</th></tr></thead>
+        <tbody>{sources.map((s) => <tr><td>{s.label}</td><td>± {de(s.range)} %-Punkte</td></tr>)}</tbody>
+      </table>
+    </div>
+    <p>
+      Die Unsicherheit der FFM-Formel setzt sich zusammen aus dem Modellfehler (± 7,5 % bei exakt bekannter FFM) und dem Messfehler des
+      Körperfetts, der sich über die FFM fortpflanzt (quadratisch addiert). Liegen mehrere Körperfettwerte vor (z. B. Waage und
+      Navy-Methode), werden sie nach ihrer Genauigkeit gemittelt.
+    </p>
+
+    <h2 id="navy">Stufe 3: Navy-Methode</h2>
+    <p>Die U.S. Navy schätzt den Körperfettanteil aus Körperumfängen und Größe (Hodgdon &amp; Beckett 1984), alle Maße in cm:</p>
+    <code class="formula">Männer: 495 / (1,0324 − 0,19077 × log₁₀(Taille − Hals) + 0,15456 × log₁₀(Größe)) − 450</code>
+    <code class="formula">Frauen: 495 / (1,29579 − 0,35004 × log₁₀(Taille + Hüfte − Hals) + 0,221 × log₁₀(Größe)) − 450</code>
+    <p>Mit einem Maßband liefert sie oft bessere Werte als günstige Körperfettwaagen.</p>
+
+    <h2 id="kombination">Formeln kombinieren statt auswählen</h2>
+    <p>
+      Statt stur eine Formel zu nehmen, kombinieren wir Mifflin-St Jeor und die FFM-Formel zu einem gewichteten Mittel: Die genauere
+      Schätzung bekommt mehr Gewicht (inverse Varianz). Weil beide Formeln teils dieselben Eingaben nutzen und oft in dieselbe Richtung
+      irren, rechnen wir mit einer Fehlerkorrelation von 0,5 – das verhindert, dass das Ergebnis genauer wirkt, als es ist. Welche Formel
+      wie stark eingeht, siehst du in der Tabelle „Alle Formeln im Vergleich“ unter deinem Ergebnis.
+    </p>
+
+    <h2 id="faktoren">Stufe 4: Weitere Faktoren</h2>
+    <p>
+      Manche Umstände verändern den Grundumsatz, lassen sich aber nur grob beziffern. Wir wenden sie als vorsichtige Korrekturen an und
+      verbreitern dabei den Bereich – ehrlicher als eine exakte Zahl vorzutäuschen.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Faktor</th><th>Korrektur</th><th>Zusätzliche Unsicherheit</th></tr></thead>
+        <tbody>
+          <tr><td>Schilddrüsenunterfunktion, unbehandelt</td><td>−10 %</td><td>± 7 %</td></tr>
+          <tr><td>Schilddrüsenüberfunktion, unbehandelt</td><td>+15 %</td><td>± 12 %</td></tr>
+          <tr><td>Schilddrüse, behandelt</td><td>0 %</td><td>± 3 %</td></tr>
+          <tr><td>Schwangerschaft 1. / 2. / 3. Trimester</td><td>0 / +5 / +10 %</td><td>± 3 / 4 / 5 %</td></tr>
+          <tr><td>Stillzeit</td><td>+500 kcal im Gesamtumsatz</td><td>–</td></tr>
+          <tr><td>Weniger als 6 Stunden Schlaf</td><td>−3 %</td><td>± 2 %</td></tr>
+          <tr><td>Kaltes Umfeld / heißes Klima</td><td>+3 % / +2 %</td><td>± 2 %</td></tr>
+          <tr><td>Längere Diät (metabolische Adaption)</td><td>−5 %</td><td>± 3 %</td></tr>
+          <tr><td>Rauchen</td><td>+4 %</td><td>± 3 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="pal">Gesamtumsatz über den Aktivitätsfaktor (PAL)</h2>
+    <p>Der Gesamtumsatz ist der Grundumsatz multipliziert mit dem Physical Activity Level (PAL) nach DGE:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Alltag</th><th>PAL</th></tr></thead>
+        <tbody>{PAL_LEVELS.map((l) => <tr><td>{l.label}<br /><span class="muted small">{l.example}</span></td><td>{de(l.pal)}</td></tr>)}</tbody>
+      </table>
+    </div>
+    <p>
+      Für Sport kommen {SPORT_LEVELS.filter((s) => s.add > 0).map((s) => `+${de(s.add)} (${s.label})`).join(' bzw. ')} hinzu. Weil die
+      Selbsteinschätzung der Aktivität unsicher ist, rechnen wir hier mit zusätzlich ± 12 %.
+    </p>
+
+    <h2 id="adaptiv">Stufe 5: Echter Verbrauch aus dem Verlauf</h2>
+    <p>
+      Der Königsweg: Dein Körper ist das genaueste Messgerät. Wenn du über mindestens 14 Tage (ideal 3–4 Wochen) dein Gewicht und deine
+      Kalorienzufuhr notierst, gilt:
+    </p>
+    <code class="formula">Verbrauch = Ø Kalorienzufuhr − Gewichtstrend [kg/Tag] × 7.700 kcal/kg</code>
+    <p>
+      Den Gewichtstrend bestimmen wir per linearer Regression über die letzten 28 Tage – so glätten sich Wasserschwankungen heraus. Der
+      Bereich berücksichtigt das Rauschen der Waage, typische Fehler beim Kalorienzählen (± 7 %), fehlende Tage und die Unsicherheit der
+      7.700-kcal-Regel bei schneller Abnahme (anfangs verliert man viel Wasser und Glykogen). Aus gemessenem Verbrauch und Grundumsatz
+      ergibt sich außerdem dein tatsächlicher Aktivitätsfaktor.
+    </p>
+
+    <h2 id="bereich">Was der Bereich bedeutet</h2>
+    <p>
+      „1.780 ± 178 kcal“ heißt: Nach allem, was wir über Menschen mit deinen Angaben wissen, liegt dein wahrer Grundumsatz mit etwa 80 %
+      Wahrscheinlichkeit zwischen 1.602 und 1.958 kcal. Die Unsicherheiten stammen aus Validierungsstudien und sind gerundet – sie sind
+      eine ehrliche Größenordnung, keine exakte Statistik.
+    </p>
+
+    <h2 id="quellen">Quellen</h2>
+    <ul class="refs">
+      <li>Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. <em>Am J Clin Nutr</em> 1990;51:241–247.</li>
+      <li>Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. <em>J Am Diet Assoc</em> 2005;105:775–789.</li>
+      <li>Roza AM, Shizgal HM. The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. <em>Am J Clin Nutr</em> 1984;40:168–182.</li>
+      <li>Cunningham JJ. A reanalysis of the factors influencing basal metabolic rate in normal adults. <em>Am J Clin Nutr</em> 1980;33:2372–2374.</li>
+      <li>McArdle WD, Katch FI, Katch VL. <em>Exercise Physiology: Nutrition, Energy, and Human Performance.</em> Lippincott Williams &amp; Wilkins.</li>
+      <li>Hodgdon JA, Beckett MB. Prediction of percent body fat for U.S. Navy men and women from body circumferences and height. Naval Health Research Center, Reports 84-11 und 84-29, 1984.</li>
+      <li>Deurenberg P, Weststrate JA, Seidell JC. Body mass index as a measure of body fatness: age- and sex-specific prediction formulas. <em>Br J Nutr</em> 1991;65:105–114.</li>
+      <li>Hall KD et al. Quantification of the effect of energy imbalance on bodyweight. <em>Lancet</em> 2011;378:826–837.</li>
+      <li>Deutsche Gesellschaft für Ernährung (DGE). Referenzwerte für die Energiezufuhr.</li>
+    </ul>
+
+    <p class="note warn">
+      Dieser Rechner ersetzt keine medizinische Beratung. Bei Erkrankungen, in Schwangerschaft und Stillzeit sowie bei Essstörungen
+      sprich bitte mit Ärztin, Arzt oder Ernährungsfachkraft.
+    </p>
+  </article>
+</Base>
+
+<style>
+  .prose {
+    padding-top: 36px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    margin-bottom: 10px;
+  }
+  .lead {
+    font-size: 1.08rem;
+    color: var(--muted);
+  }
+  .toc {
+    padding: 14px 22px;
+    margin: 24px 0;
+    box-shadow: none;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  @media (max-width: 560px) {
+    .toc ol {
+      columns: 1;
+    }
+  }
+  .refs li {
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+  }
+  .note {
+    margin-top: 32px;
+  }
+</style>
