@@ -1,0 +1,772 @@
+---
+import { BODY_FAT_SOURCES, PAL_LEVELS, SPORT_LEVELS } from '@grundumsatz/core';
+
+const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map((id) => ({ id, ...BODY_FAT_SOURCES[id] }));
+---
+
+<section class="calc wrap" aria-label="Rechner">
+  <form id="calc-form" class="inputs" novalidate autocomplete="off">
+    <!-- 1 Basis -->
+    <fieldset class="card group open-always">
+      <legend class="group-head">
+        <span class="step-no">1</span>
+        <span class="group-title">Basisdaten <span class="req">Pflicht</span></span>
+      </legend>
+      <div class="group-body">
+        <div class="field">
+          <span class="label" id="sex-label">Geschlecht</span>
+          <div class="seg" role="radiogroup" aria-labelledby="sex-label">
+            <label><input type="radio" name="sex" value="female" /><span>Frau</span></label>
+            <label><input type="radio" name="sex" value="male" /><span>Mann</span></label>
+          </div>
+          <p class="hint small muted">Biologisches Geschlecht – es beeinflusst Muskel- und Fettanteil und damit die Formeln.</p>
+          <p class="err" data-error-for="sex"></p>
+        </div>
+        <div class="row3">
+          <label class="field">
+            <span class="label">Alter</span>
+            <span class="unit-input"><input name="age" inputmode="numeric" placeholder="z. B. 34" /><span>Jahre</span></span>
+            <span class="err" data-error-for="age"></span>
+          </label>
+          <label class="field">
+            <span class="label">Größe</span>
+            <span class="unit-input"><input name="height" inputmode="decimal" placeholder="z. B. 175" /><span>cm</span></span>
+            <span class="err" data-error-for="heightCm"></span>
+          </label>
+          <label class="field">
+            <span class="label">Gewicht</span>
+            <span class="unit-input"><input name="weight" inputmode="decimal" placeholder="z. B. 72,5" /><span>kg</span></span>
+            <span class="err" data-error-for="weightKg"></span>
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <p class="more-intro muted small">
+      Alles Weitere ist <strong>optional</strong> – jede Angabe macht das Ergebnis genauer.
+    </p>
+
+    <!-- 2 Körperfett -->
+    <details class="card group" data-group="bodyfat">
+      <summary class="group-head">
+        <span class="step-no">2</span>
+        <span class="group-title">Körperfettanteil</span>
+        <span class="gain" data-gain="bodyfat"></span>
+        <span class="done-dot" data-done="bodyfat" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small">
+          Kennst du deinen Körperfettanteil? Dann wird aus der fettfreien Masse gerechnet (Katch-McArdle bzw. Cunningham). Wie genau das
+          ist, hängt stark von der Messmethode ab.
+        </p>
+        <div class="row2">
+          <label class="field">
+            <span class="label">Körperfett</span>
+            <span class="unit-input"><input name="bf" inputmode="decimal" placeholder="z. B. 22" /><span>%</span></span>
+            <span class="err" data-error-for="bodyFat"></span>
+          </label>
+          <label class="field">
+            <span class="label">Gemessen mit</span>
+            <select name="bfSource">
+              {bfSources.map((s) => <option value={s.id}>{s.label} (±{String(s.range).replace('.', ',')} %-Pkt.)</option>)}
+            </select>
+          </label>
+        </div>
+      </div>
+    </details>
+
+    <!-- 3 Umfänge -->
+    <details class="card group" data-group="circumferences">
+      <summary class="group-head">
+        <span class="step-no">3</span>
+        <span class="group-title">Körperumfänge</span>
+        <span class="gain" data-gain="circumferences"></span>
+        <span class="done-dot" data-done="circumferences" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small">
+          Kein Körperfettwert zur Hand? Mit einem Maßband schätzt die <strong>Navy-Methode</strong> den Körperfettanteil erstaunlich gut.
+        </p>
+        <div class="row3">
+          <label class="field">
+            <span class="label">Taille</span>
+            <span class="unit-input"><input name="waist" inputmode="decimal" placeholder="z. B. 84" /><span>cm</span></span>
+            <span class="err" data-error-for="waistCm"></span>
+          </label>
+          <label class="field">
+            <span class="label">Hals</span>
+            <span class="unit-input"><input name="neck" inputmode="decimal" placeholder="z. B. 37" /><span>cm</span></span>
+            <span class="err" data-error-for="neckCm"></span>
+          </label>
+          <label class="field" data-only="female">
+            <span class="label">Hüfte</span>
+            <span class="unit-input"><input name="hip" inputmode="decimal" placeholder="z. B. 98" /><span>cm</span></span>
+            <span class="err" data-error-for="hipCm"></span>
+          </label>
+        </div>
+        <details class="howto small">
+          <summary>So misst du richtig</summary>
+          <ul>
+            <li><strong>Taille:</strong> waagerecht auf Höhe des Bauchnabels, entspannt ausatmen, nicht einziehen.</li>
+            <li><strong>Hals:</strong> direkt unterhalb des Kehlkopfs, Maßband leicht nach vorne unten geneigt.</li>
+            <li data-only="female"><strong>Hüfte:</strong> an der breitesten Stelle des Gesäßes.</li>
+            <li>Morgens messen, Maßband anliegend, aber ohne einzuschnüren. Zweimal messen und mitteln.</li>
+          </ul>
+        </details>
+      </div>
+    </details>
+
+    <!-- 4 Weitere Faktoren -->
+    <details class="card group" data-group="factors">
+      <summary class="group-head">
+        <span class="step-no">4</span>
+        <span class="group-title">Weitere Faktoren</span>
+        <span class="done-dot" data-done="factors" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <label class="check">
+          <input type="checkbox" name="athlete" />
+          <span><strong>Viel Muskelmasse</strong> – regelmäßiges Krafttraining oder Leistungssport seit über einem Jahr</span>
+        </label>
+        <div class="row2">
+          <label class="field">
+            <span class="label">Schilddrüse</span>
+            <select name="thyroid">
+              <option value="">Keine Angabe</option>
+              <option value="normal">Gesund</option>
+              <option value="hypo_treated">Unterfunktion, behandelt</option>
+              <option value="hypo_untreated">Unterfunktion, unbehandelt</option>
+              <option value="hyper_treated">Überfunktion, behandelt</option>
+              <option value="hyper_untreated">Überfunktion, unbehandelt</option>
+            </select>
+          </label>
+          <label class="field" data-only="female">
+            <span class="label">Schwangerschaft / Stillzeit</span>
+            <select name="pregnancy">
+              <option value="">Keine Angabe</option>
+              <option value="none">Nein</option>
+              <option value="t1">Schwanger, 1. Trimester</option>
+              <option value="t2">Schwanger, 2. Trimester</option>
+              <option value="t3">Schwanger, 3. Trimester</option>
+              <option value="breastfeeding">Stillzeit</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="label">Schlaf pro Nacht (Ø)</span>
+            <span class="unit-input"><input name="sleep" inputmode="decimal" placeholder="z. B. 7" /><span>Std.</span></span>
+            <span class="err" data-error-for="sleepHours"></span>
+          </label>
+          <label class="field">
+            <span class="label">Umgebung</span>
+            <select name="climate">
+              <option value="">Keine Angabe</option>
+              <option value="moderate">Gemäßigt</option>
+              <option value="cold">Oft kalt (kühle Wohnung, viel draußen)</option>
+              <option value="hot">Dauerhaft heiß</option>
+            </select>
+          </label>
+        </div>
+        <label class="check">
+          <input type="checkbox" name="diet" />
+          <span><strong>Längere Diät:</strong> seit ca. 3 Monaten oder länger im Kaloriendefizit bzw. deutlich abgenommen</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="smoker" />
+          <span><strong>Rauchen</strong> (regelmäßig)</span>
+        </label>
+      </div>
+    </details>
+
+    <!-- 5 Aktivität -->
+    <details class="card group" data-group="activity">
+      <summary class="group-head">
+        <span class="step-no">5</span>
+        <span class="group-title">Alltag &amp; Sport <span class="muted small">→ Gesamtumsatz</span></span>
+        <span class="gain" data-gain="activity"></span>
+        <span class="done-dot" data-done="activity" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small">Der Grundumsatz gilt für völlige Ruhe. Mit deinem Aktivitätsniveau (PAL) wird daraus der Gesamtumsatz.</p>
+        <div class="pal-list" role="radiogroup" aria-label="Aktivitätsniveau">
+          <label class="pal"><input type="radio" name="pal" value="" checked /><span><strong>Keine Angabe</strong></span></label>
+          {
+            PAL_LEVELS.map((l) => (
+              <label class="pal">
+                <input type="radio" name="pal" value={l.id} />
+                <span>
+                  <strong>{l.label}</strong>
+                  <span class="muted small">
+                    {l.example} · PAL {String(l.pal).replace('.', ',')}
+                  </span>
+                </span>
+              </label>
+            ))
+          }
+        </div>
+        <label class="field">
+          <span class="label">Zusätzlicher Sport</span>
+          <select name="sport">
+            {SPORT_LEVELS.map((s) => <option value={s.id}>{s.label}{s.add > 0 ? ` (+${String(s.add).replace('.', ',')} PAL)` : ''}</option>)}
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <!-- 6 Verlauf -->
+    <a class="card group group-link" href="#verlauf" data-group="adaptive">
+      <span class="group-head">
+        <span class="step-no">6</span>
+        <span class="group-title">Verlauf: echten Verbrauch messen <span class="badge">Königsweg</span></span>
+        <span class="done-dot" data-done="adaptive" aria-hidden="true"></span>
+      </span>
+      <span class="group-body small muted" id="adaptive-teaser">
+        2–4 Wochen Gewicht und Kalorien notieren – daraus wird dein tatsächlicher Verbrauch berechnet. Zum Tagebuch ↓
+      </span>
+    </a>
+
+    <div class="form-actions">
+      <label class="check small">
+        <input type="checkbox" name="remember" checked />
+        <span>Eingaben auf diesem Gerät merken</span>
+      </label>
+      <button type="button" class="btn ghost small" id="reset-btn">Eingaben zurücksetzen</button>
+    </div>
+  </form>
+
+  <aside class="result-col" aria-label="Ergebnis">
+    <div class="card result" id="result" aria-live="polite">
+      <div class="result-empty" id="result-empty">
+        <p class="eyebrow">Dein Grundumsatz</p>
+        <p class="big muted">– kcal</p>
+        <p class="muted">Gib Geschlecht, Alter, Größe und Gewicht ein – das Ergebnis erscheint sofort.</p>
+      </div>
+      <div class="result-full" id="result-full" hidden>
+        <p class="eyebrow">Dein Grundumsatz</p>
+        <p class="big num"><span id="r-value">–</span> <span class="unit">kcal/Tag</span></p>
+        <p class="range num" id="r-range"></p>
+
+        <div class="meter" aria-hidden="true">
+          <div class="meter-track">
+            <div class="meter-band ghost" id="m-ghost"></div>
+            <div class="meter-band" id="m-band"></div>
+            <div class="meter-mark" id="m-mark"></div>
+          </div>
+          <div class="meter-scale num"><span id="m-min"></span><span id="m-max"></span></div>
+        </div>
+        <p class="small muted" id="r-narrow"></p>
+
+        <div class="precision">
+          <div class="precision-head small">
+            <span>Genauigkeit</span><strong id="r-precision-label"></strong>
+          </div>
+          <div class="precision-bar"><span id="r-precision-bar"></span></div>
+        </div>
+
+        <ul class="stages" id="r-stages"></ul>
+
+        <p class="method small"><span class="muted">Berechnet mit</span> <strong id="r-method"></strong></p>
+
+        <div class="tdee" id="r-tdee" hidden>
+          <p class="eyebrow">Gesamtumsatz</p>
+          <p class="mid num"><span id="t-value"></span> <span class="unit">kcal/Tag</span></p>
+          <p class="small muted num" id="t-detail"></p>
+        </div>
+
+        <a class="small" href="#erklaerung">Wie kommt das Ergebnis zustande? ↓</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="mini-result" id="mini-result" hidden>
+    <a href="#result"><span class="num" id="mini-value"></span> <span class="muted num" id="mini-range"></span></a>
+  </div>
+</section>
+
+<style>
+  .calc {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .calc {
+      grid-template-columns: 1fr;
+    }
+  }
+  .inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .group {
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+  }
+  fieldset.group {
+    border: 1px solid var(--border);
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    font-weight: 650;
+    font-size: 1.05rem;
+    width: 100%;
+  }
+  fieldset .group-head {
+    float: left;
+    padding-bottom: 4px;
+  }
+  fieldset .group-body {
+    clear: both;
+  }
+  summary.group-head {
+    cursor: pointer;
+    list-style: none;
+  }
+  summary.group-head::-webkit-details-marker {
+    display: none;
+  }
+  summary.group-head::after {
+    content: '';
+    margin-left: 4px;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg) translateY(-3px);
+    transition: transform 0.2s;
+    flex: none;
+  }
+  details[open] > summary.group-head::after {
+    transform: rotate(225deg) translateY(-2px);
+  }
+  .group-title {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .step-no {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+  .req,
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .badge {
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .gain {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-strong);
+    white-space: nowrap;
+  }
+  .gain:empty {
+    display: none;
+  }
+  .done-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    flex: none;
+  }
+  .done-dot.on {
+    background: var(--accent);
+  }
+  .group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 18px 18px;
+  }
+  .group-body > p {
+    margin: 0;
+  }
+  .group-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .group-link:hover {
+    border-color: var(--accent);
+  }
+  .more-intro {
+    margin: 6px 4px 0;
+  }
+  .row2,
+  .row3 {
+    display: grid;
+    gap: 12px;
+  }
+  .row2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .row3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 560px) {
+    .row2,
+    .row3 {
+      grid-template-columns: 1fr;
+    }
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+  .field .hint {
+    margin: 0;
+  }
+  .label {
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .unit-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .unit-input:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .unit-input input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 1.05rem;
+    padding: 10px 12px;
+    outline: none;
+  }
+  .unit-input > span {
+    padding: 0 12px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  select {
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    width: 100%;
+  }
+  .invalid .unit-input {
+    border-color: var(--warn);
+  }
+  .err {
+    color: var(--warn);
+    font-size: 0.82rem;
+    margin: 0;
+  }
+  .err:empty {
+    display: none;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--surface-2);
+    width: fit-content;
+  }
+  .seg label {
+    position: relative;
+  }
+  .seg input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+  }
+  .seg span {
+    display: block;
+    padding: 7px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .seg input:checked + span {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .seg input:focus-visible + span {
+    outline: 3px solid var(--accent);
+  }
+  .check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+  .check input {
+    margin-top: 4px;
+    accent-color: var(--accent);
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+  .pal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pal {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    cursor: pointer;
+  }
+  .pal:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .pal input {
+    margin-top: 5px;
+    accent-color: var(--accent);
+  }
+  .pal > span {
+    display: flex;
+    flex-direction: column;
+  }
+  .howto summary {
+    cursor: pointer;
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+  .howto ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+  }
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 4px;
+  }
+  [data-only='female'].hidden-sex {
+    display: none;
+  }
+
+  /* Ergebnis */
+  .result-col {
+    position: sticky;
+    top: 16px;
+    min-width: 0;
+  }
+  .result {
+    padding: 22px;
+  }
+  .eyebrow {
+    margin: 0;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .big {
+    margin: 4px 0 0;
+    font-size: clamp(2.4rem, 6vw, 3.2rem);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .big .unit,
+  .mid .unit {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+  .range {
+    margin: 4px 0 14px;
+    font-weight: 600;
+    color: var(--accent-strong);
+  }
+  .meter-track {
+    position: relative;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .meter-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--band);
+    border-left: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    transition:
+      left 0.45s ease,
+      width 0.45s ease;
+  }
+  .meter-band.ghost {
+    top: 9px;
+    bottom: 9px;
+    background: var(--band-ghost);
+    border: 1px dashed var(--muted);
+    border-radius: 4px;
+  }
+  .meter-mark {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    width: 3px;
+    margin-left: -1.5px;
+    border-radius: 2px;
+    background: var(--accent-strong);
+    transition: left 0.45s ease;
+  }
+  .meter-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  #r-narrow {
+    margin: 6px 0 0;
+  }
+  .precision {
+    margin-top: 16px;
+  }
+  .precision-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .precision-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .precision-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.45s ease;
+  }
+  .stages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 0;
+  }
+  .method {
+    margin: 14px 0 0;
+  }
+  .tdee {
+    margin: 16px 0 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .mid {
+    margin: 2px 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  #t-detail {
+    margin: 0;
+  }
+  .mini-result {
+    display: none;
+  }
+  @media (max-width: 880px) {
+    .result-col {
+      position: static;
+    }
+    .mini-result:not([hidden]) {
+      display: block;
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 10;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      padding: 10px 16px;
+      font-weight: 700;
+      transition:
+        opacity 0.2s,
+        transform 0.2s;
+    }
+    .mini-result.away {
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+    }
+    .mini-result a {
+      color: var(--text);
+      text-decoration: none;
+    }
+  }
+</style>
+
+<style is:global>
+  .stage-chip {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .stage-chip.done {
+    background: var(--accent-soft);
+    border-color: transparent;
+    color: var(--accent-strong);
+  }
+  .stage-chip.done::before {
+    content: '✓ ';
+  }
+</style>

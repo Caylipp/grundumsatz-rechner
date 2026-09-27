@@ -1,0 +1,136 @@
+---
+import Base from '../layouts/Base.astro';
+import Calculator from '../components/Calculator.astro';
+import Explanation from '../components/Explanation.astro';
+import Tracker from '../components/Tracker.astro';
+
+const faq = [
+  {
+    q: 'Was ist der Grundumsatz?',
+    a: 'Der Grundumsatz (englisch Basal Metabolic Rate, BMR) ist die Energiemenge, die dein Körper in völliger Ruhe pro Tag verbraucht – für Atmung, Herzschlag, Gehirn, Organe und Körpertemperatur. Er macht bei den meisten Menschen 60–70 % des gesamten Tagesverbrauchs aus.',
+  },
+  {
+    q: 'Was ist der Unterschied zwischen Grundumsatz und Gesamtumsatz?',
+    a: 'Der Gesamtumsatz (TDEE) umfasst zusätzlich jede Bewegung, Sport und die Verdauung. Er wird aus dem Grundumsatz mal Aktivitätsfaktor (PAL) geschätzt – bei Büroarbeit etwa 1,4–1,5. Noch genauer ist es, ihn aus Gewichtsverlauf und gegessenen Kalorien zurückzurechnen.',
+  },
+  {
+    q: 'Warum ist das Ergebnis ein Bereich und keine feste Zahl?',
+    a: 'Jede Formel ist ein Durchschnitt über viele Menschen. Zwei Personen mit gleichem Alter, Gewicht und gleicher Größe können sich um mehrere hundert Kalorien unterscheiden, etwa weil eine mehr Muskeln hat. Der angegebene Bereich enthält den wahren Wert mit etwa 80 % Wahrscheinlichkeit. Je mehr du angibst, desto schmaler wird er.',
+  },
+  {
+    q: 'Welche Formel ist die genaueste?',
+    a: 'Ohne Angaben zur Körperzusammensetzung gilt Mifflin-St Jeor als die zuverlässigste Standardformel. Kennst du deinen Körperfettanteil, sind Formeln auf Basis der fettfreien Masse (Katch-McArdle, Cunningham) meist genauer. Dieser Rechner kombiniert die passenden Formeln automatisch und gewichtet sie nach ihrer Genauigkeit.',
+  },
+  {
+    q: 'Wie kann ich meinen Grundumsatz erhöhen?',
+    a: 'Am stärksten wirkt Muskelmasse: Krafttraining erhöht die fettfreie Masse und damit den Ruheumsatz. Ausreichend Schlaf, genug Eiweiß und keine extremen Diäten helfen zusätzlich, einen Abfall des Verbrauchs zu vermeiden.',
+  },
+  {
+    q: 'Sollte ich weniger als meinen Grundumsatz essen?',
+    a: 'Dauerhaft nicht ohne fachliche Begleitung. Für eine gesunde Abnahme orientiert man sich am Gesamtumsatz und isst etwa 300–500 kcal weniger. Sehr niedrige Kalorienzufuhr kann zu Muskelabbau und Nährstoffmangel führen.',
+  },
+  {
+    q: 'Werden meine Daten gespeichert?',
+    a: 'Nur lokal in deinem Browser, wenn du das möchtest. Es werden keine Daten an einen Server übertragen, es gibt keine Cookies und kein Tracking. Mit „Eingaben zurücksetzen“ und „Verlauf löschen“ entfernst du alles.',
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Grundumsatz-Rechner',
+    applicationCategory: 'HealthApplication',
+    operatingSystem: 'Web',
+    inLanguage: 'de',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    description: 'Grundumsatz berechnen mit progressiver Genauigkeit: je mehr optionale Angaben, desto schmaler der Konfidenzbereich.',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+
+<Base
+  title="Grundumsatz berechnen – je mehr Angaben, desto genauer | Grundumsatz-Rechner"
+  description="Kostenloser Grundumsatz-Rechner mit Konfidenzbereich: Mifflin-St Jeor, Katch-McArdle, Navy-Methode und echter Verbrauch aus deinem Gewichtsverlauf. Mit verständlicher Erklärung, ohne Tracking."
+  jsonLd={jsonLd}
+>
+  <header class="hero wrap">
+    <h1>Grundumsatz berechnen</h1>
+    <p class="lead">
+      Die meisten Rechner nutzen eine einzige Formel und zeigen eine scheinbar exakte Zahl. Hier siehst du, <strong>wie genau</strong> dein
+      Ergebnis ist – und mit jeder zusätzlichen Angabe wird der Bereich schmaler.
+    </p>
+  </header>
+
+  <Calculator />
+  <Explanation />
+  <Tracker />
+
+  <section class="wrap seo" aria-labelledby="faq-h">
+    <h2 id="faq-h">Häufige Fragen zum Grundumsatz</h2>
+    <div class="faq">
+      {
+        faq.map((f) => (
+          <details class="card">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+    <p class="more"><a href="/methodik/">Ausführlich: alle Formeln, Annahmen und Quellen →</a></p>
+  </section>
+
+  <script>
+    import '../scripts/app';
+  </script>
+</Base>
+
+<style>
+  .hero {
+    padding-top: 36px;
+    padding-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    margin: 0 0 10px;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 720px;
+    margin: 0;
+  }
+  .seo {
+    margin-top: 56px;
+  }
+  .seo h2 {
+    font-size: 1.6rem;
+  }
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 820px;
+  }
+  .faq details {
+    padding: 14px 18px;
+    box-shadow: none;
+  }
+  .faq summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+  .faq p {
+    margin: 10px 0 0;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: 18px;
+  }
+</style>

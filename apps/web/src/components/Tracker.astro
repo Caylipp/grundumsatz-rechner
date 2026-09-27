@@ -1,0 +1,257 @@
+---
+---
+
+<section id="verlauf" class="wrap tracker" aria-labelledby="tracker-h">
+  <h2 id="tracker-h">Verlauf: deinen echten Verbrauch messen</h2>
+  <p class="lead muted">
+    Formeln schätzen – dein Körper misst. Wenn du 2–4 Wochen lang dein Gewicht (am besten täglich morgens) und deine gegessenen Kalorien
+    notierst, lässt sich dein <strong>tatsächlicher Gesamtumsatz</strong> zurückrechnen: Wer bei 2.200 kcal pro Tag ein halbes Kilo pro
+    Woche abnimmt, verbraucht rund 2.750 kcal.
+  </p>
+
+  <div class="tracker-grid">
+    <div class="card pad">
+      <h3>Eintrag hinzufügen</h3>
+      <form id="log-form" class="log-form" novalidate>
+        <label class="field">
+          <span class="label">Datum</span>
+          <input type="date" name="date" required />
+        </label>
+        <label class="field">
+          <span class="label">Gewicht (kg)</span>
+          <input name="weight" inputmode="decimal" placeholder="z. B. 78,4" />
+        </label>
+        <label class="field">
+          <span class="label">Gegessen (kcal)</span>
+          <input name="kcal" inputmode="numeric" placeholder="z. B. 2150" />
+        </label>
+        <button class="btn" type="submit">Speichern</button>
+      </form>
+      <p class="err small" id="log-error"></p>
+      <p class="small muted">Einen Wert leer lassen ist okay – z. B. nur das Gewicht eintragen. Ein weiterer Eintrag am selben Tag überschreibt den alten.</p>
+
+      <div class="status" id="adaptive-status"></div>
+
+      <div class="tools">
+        <button class="btn ghost small" type="button" id="log-demo">Beispieldaten laden</button>
+        <button class="btn ghost small" type="button" id="log-export">CSV exportieren</button>
+        <label class="btn ghost small file-btn">
+          CSV importieren
+          <input type="file" accept=".csv,text/csv,text/plain" id="log-import" class="sr-only" />
+        </label>
+        <button class="btn ghost small" type="button" id="log-clear">Verlauf löschen</button>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <h3>Gewichtstrend</h3>
+      <div class="chart" id="log-chart">
+        <p class="muted small">Noch keine Gewichtseinträge.</p>
+      </div>
+      <details class="entries">
+        <summary><span id="log-count">0 Einträge</span></summary>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Datum</th><th>Gewicht</th><th>kcal</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+            <tbody id="log-rows"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tracker {
+    margin-top: 56px;
+  }
+  .tracker h2 {
+    font-size: 1.6rem;
+  }
+  .lead {
+    max-width: 780px;
+  }
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .tracker-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .pad {
+    padding: 20px;
+  }
+  .pad h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+  .log-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: end;
+  }
+  .log-form .btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+  @media (max-width: 420px) {
+    .log-form {
+      grid-template-columns: 1fr 1fr;
+    }
+    .log-form .field:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .field input {
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    min-width: 0;
+    width: 100%;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .err {
+    color: var(--warn);
+    margin: 8px 0 0;
+  }
+  .err:empty {
+    display: none;
+  }
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .file-btn {
+    position: relative;
+  }
+  .chart {
+    min-height: 120px;
+  }
+  .entries {
+    margin-top: 12px;
+  }
+  .entries summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--accent-strong);
+  }
+</style>
+
+<style is:global>
+  .status {
+    margin-top: 16px;
+  }
+  .status .progress {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  .status .progress span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .status ul {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .measured {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .measured .val {
+    font-size: 1.7rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .measured p {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+  }
+  .chart svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .chart .axis text {
+    font-size: 11px;
+    fill: var(--muted);
+  }
+  .chart .grid line {
+    stroke: var(--border);
+  }
+  .chart .pt {
+    fill: var(--muted);
+    opacity: 0.55;
+  }
+  .chart .trend {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .chart .reg {
+    stroke: var(--muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+  .chart .kcal {
+    fill: #e2b04a;
+    opacity: 0.3;
+  }
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .chart-legend i {
+    display: inline-block;
+    width: 14px;
+    height: 3px;
+    vertical-align: middle;
+    margin-right: 5px;
+    border-radius: 2px;
+  }
+  .row-del {
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 4px;
+  }
+  .row-del:hover {
+    color: var(--warn);
+  }
+</style>

@@ -1,0 +1,16 @@
+{
+  "name": "grundumsatz-rechner",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @grundumsatz/web",
+    "build": "npm run typecheck -w @grundumsatz/core && npm run build -w @grundumsatz/web",
+    "preview": "npm run preview -w @grundumsatz/web",
+    "test": "npm test -w @grundumsatz/core",
+    "typecheck": "npm run typecheck -w @grundumsatz/core"
+  }
+}

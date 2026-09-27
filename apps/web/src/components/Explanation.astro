@@ -1,0 +1,259 @@
+---
+---
+
+<section id="erklaerung" class="wrap explain" aria-labelledby="explain-h">
+  <h2 id="explain-h">So kommt dein Ergebnis zustande</h2>
+  <p class="muted" id="explain-empty">Sobald du die Basisdaten eingibst, erscheint hier Schritt für Schritt, wie gerechnet wurde.</p>
+
+  <div id="explain-body" hidden>
+    <div class="explain-grid">
+      <div class="card pad">
+        <h3>Rechenweg</h3>
+        <ol class="steps" id="x-steps"></ol>
+      </div>
+
+      <div class="side">
+        <div class="card pad" id="x-suggest-card">
+          <h3>Noch genauer werden</h3>
+          <ul class="suggest" id="x-suggest"></ul>
+        </div>
+        <div class="card pad" id="x-hints-card" hidden>
+          <h3>Hinweise</h3>
+          <div class="hints" id="x-hints"></div>
+        </div>
+        <div class="card pad" id="x-body-card" hidden>
+          <h3>Körperzusammensetzung</h3>
+          <div id="x-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card pad formulas">
+      <h3>Alle Formeln im Vergleich</h3>
+      <p class="small muted">
+        Verschiedene Formeln liefern für dieselbe Person unterschiedliche Werte. Wir nutzen nicht einfach eine, sondern gewichten die
+        passenden nach ihrer Genauigkeit.
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Formel</th><th class="r">Ergebnis</th><th>Anteil am Ergebnis</th></tr></thead>
+          <tbody id="x-formulas"></tbody>
+        </table>
+      </div>
+      <p class="small"><a href="/methodik/">Alle Formeln, Annahmen und Quellen →</a></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .explain {
+    margin-top: 56px;
+  }
+  .explain h2 {
+    font-size: 1.6rem;
+  }
+  .explain-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .explain-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+  .pad {
+    padding: 20px;
+  }
+  .pad h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+  .formulas {
+    margin-top: 20px;
+  }
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: s;
+  }
+  .hints {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .suggest {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .r {
+    text-align: right;
+  }
+</style>
+
+<style is:global>
+  .step {
+    position: relative;
+    padding: 0 0 18px 34px;
+    border-left: 2px solid var(--border);
+    margin-left: 11px;
+  }
+  .step:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+  }
+  .step::before {
+    counter-increment: s;
+    content: counter(s);
+    position: absolute;
+    left: -13px;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+  .step-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+  .step-title {
+    font-weight: 650;
+  }
+  .step-val {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .step p {
+    margin: 4px 0 0;
+    font-size: 0.93rem;
+    color: var(--muted);
+  }
+  .deltas {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .delta {
+    font-size: 0.76rem;
+    font-weight: 650;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .delta.good {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  .delta.bad {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .breakdown {
+    margin-top: 8px;
+    font-size: 0.88rem;
+  }
+  .breakdown td {
+    padding: 4px 6px;
+  }
+  .breakdown td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .breakdown tr.sum td {
+    font-weight: 700;
+    border-bottom: 0;
+  }
+  .suggest li strong {
+    display: block;
+  }
+  .suggest li p {
+    margin: 2px 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .suggest .gainline {
+    font-size: 0.82rem;
+    font-weight: 650;
+    color: var(--accent-strong);
+    font-variant-numeric: tabular-nums;
+  }
+  .wbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+  }
+  .wbar span.track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface-2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .wbar span.fill {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .wbar small {
+    width: 3.2em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .fnote {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .comp-bar {
+    display: flex;
+    height: 14px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  .comp-bar .ffm {
+    background: var(--accent);
+  }
+  .comp-bar .fat {
+    background: #e2b04a;
+  }
+  .comp-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .comp-list {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+</style>
