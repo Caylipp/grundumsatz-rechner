@@ -11,6 +11,7 @@
     "build": "npm run typecheck -w @grundumsatz/core && npm run build -w @grundumsatz/web",
     "preview": "npm run preview -w @grundumsatz/web",
     "test": "npm test -w @grundumsatz/core",
+    "deploy": "npm test && SITE_URL=${SITE_URL:-https://grundumsatz-rechner.pages.dev} BASE_PATH=/ npm run build && npx wrangler pages deploy apps/web/dist --project-name grundumsatz-rechner --branch main",
     "typecheck": "npm run typecheck -w @grundumsatz/core"
   }
 }
