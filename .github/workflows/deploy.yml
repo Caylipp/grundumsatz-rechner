@@ -1,4 +1,4 @@
-name: Test & Deploy (Cloudflare Pages)
+name: Test & Deploy (Cloudflare)
 
 on:
   push:
@@ -27,12 +27,13 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://grundumsatz-rechner.pages.dev' }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://grundumsatz-rechner.grundumsatz-web.workers.dev' }}
           BASE_PATH: /
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare
         if: github.ref == 'refs/heads/main' && env.CF_TOKEN != ''
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/dist --project-name=grundumsatz-rechner --branch=main
+          workingDirectory: apps/web
+          command: deploy

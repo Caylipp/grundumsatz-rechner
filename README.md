@@ -41,22 +41,26 @@ npm run build      # Typecheck + statischer Build nach apps/web/dist
 npm run preview    # Build lokal ansehen
 ```
 
-## Deployment (Cloudflare Pages)
+## Deployment (Cloudflare)
 
-Das Repo ist privat; gehostet wird kostenlos über Cloudflare Pages (Projekt `grundumsatz-rechner`).
+Live: **https://grundumsatz-rechner.grundumsatz-web.workers.dev**
+
+Das Repo ist privat; gehostet wird kostenlos auf Cloudflare als Worker, der nur statische Dateien ausliefert (`apps/web/wrangler.jsonc`, kein Server-Code).
 
 **Manuell (lokal):** einmalig `npx wrangler login`, danach
 
 ```bash
-npm run deploy     # Tests → Build → Upload zu Cloudflare Pages
+npm run deploy     # Tests → Build → Upload zu Cloudflare
 ```
 
 **Automatisch bei jedem Push auf `main`:** Der Workflow `.github/workflows/deploy.yml` testet und baut immer. Er deployt zusätzlich, sobald im GitHub-Repo zwei Secrets gesetzt sind:
 
-1. Im Cloudflare-Dashboard unter *My Profile → API Tokens → Create Token* die Vorlage „Edit Cloudflare Workers“ wählen (enthält *Cloudflare Pages: Edit*).
+1. Im Cloudflare-Dashboard unter *My Profile → API Tokens → Create Token* die Vorlage „Edit Cloudflare Workers“ wählen.
 2. `gh secret set CLOUDFLARE_API_TOKEN` und `gh secret set CLOUDFLARE_ACCOUNT_ID` (Account-ID steht in `npx wrangler whoami`).
 
-**Eigene Domain:** In Cloudflare unter *Workers & Pages → grundumsatz-rechner → Custom domains* hinzufügen, dann `gh variable set SITE_URL --body https://deine-domain.de` (für Canonical-URLs und Sitemap) und beim lokalen Deploy `SITE_URL=https://deine-domain.de npm run deploy`.
+**Eigene Domain:** In Cloudflare unter *Workers & Pages → grundumsatz-rechner → Settings → Domains & Routes* hinzufügen, dann `gh variable set SITE_URL --body https://deine-domain.de` (für Canonical-URLs und Sitemap) und lokal `SITE_URL=https://deine-domain.de npm run deploy`.
+
+**Achtung:** `wrangler` nicht im Repo-Wurzelordner ohne Konfiguration starten – die automatische Einrichtung baut sonst die Astro-Konfiguration auf einen Server-Adapter um.
 
 ## Vor der öffentlichen Bewerbung
 
