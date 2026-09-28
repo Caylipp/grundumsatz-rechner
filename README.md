@@ -41,11 +41,22 @@ npm run build      # Typecheck + statischer Build nach apps/web/dist
 npm run preview    # Build lokal ansehen
 ```
 
-## Deployment (GitHub Pages)
+## Deployment (Cloudflare Pages)
 
-Jeder Push auf `main` baut die Seite und veröffentlicht sie über GitHub Pages (`.github/workflows/deploy.yml`). Domain und Basis-Pfad setzt der Workflow automatisch.
+Das Repo ist privat; gehostet wird kostenlos über Cloudflare Pages (Projekt `grundumsatz-rechner`).
 
-**Eigene Domain:** In den Repo-Einstellungen unter *Pages → Custom domain* eintragen und beim Domain-Anbieter einen CNAME-Eintrag auf `<user>.github.io` setzen. Der Workflow baut dann automatisch mit der Domain und dem Pfad `/`.
+**Manuell (lokal):** einmalig `npx wrangler login`, danach
+
+```bash
+npm run deploy     # Tests → Build → Upload zu Cloudflare Pages
+```
+
+**Automatisch bei jedem Push auf `main`:** Der Workflow `.github/workflows/deploy.yml` testet und baut immer. Er deployt zusätzlich, sobald im GitHub-Repo zwei Secrets gesetzt sind:
+
+1. Im Cloudflare-Dashboard unter *My Profile → API Tokens → Create Token* die Vorlage „Edit Cloudflare Workers“ wählen (enthält *Cloudflare Pages: Edit*).
+2. `gh secret set CLOUDFLARE_API_TOKEN` und `gh secret set CLOUDFLARE_ACCOUNT_ID` (Account-ID steht in `npx wrangler whoami`).
+
+**Eigene Domain:** In Cloudflare unter *Workers & Pages → grundumsatz-rechner → Custom domains* hinzufügen, dann `gh variable set SITE_URL --body https://deine-domain.de` (für Canonical-URLs und Sitemap) und beim lokalen Deploy `SITE_URL=https://deine-domain.de npm run deploy`.
 
 ## Vor der öffentlichen Bewerbung
 
