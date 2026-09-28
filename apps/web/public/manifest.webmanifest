@@ -3,12 +3,12 @@
   "short_name": "Grundumsatz",
   "description": "Grundumsatz berechnen – je mehr Angaben, desto genauer. Alle Daten bleiben auf deinem Gerät.",
   "lang": "de",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f6f4ef",
   "theme_color": "#0f7b5f",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }

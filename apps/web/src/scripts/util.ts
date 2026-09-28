@@ -1,13 +1,6 @@
-const nf0 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
-const nf1 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-const nf2 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+import { messages, type Locale } from '@grundumsatz/core';
 
-export const int = (x: number) => nf0.format(Math.round(x));
-export const dec1 = (x: number) => nf1.format(x);
-export const dec2 = (x: number) => nf2.format(x);
-export const signed = (x: number, f: (n: number) => string = int) => (Math.round(x) > 0 ? '+' : Math.round(x) < 0 ? '−' : '±') + f(Math.abs(x));
-
-/** Parst deutsche und englische Dezimalschreibweise. Leer → undefined. */
+/** Parst deutsche und englische Dezimalschreibweise. Leer → undefined, ungültig → NaN. */
 export function parseNum(raw: string | null | undefined): number | undefined {
   if (raw == null) return undefined;
   const s = raw.trim().replace(/\s/g, '').replace(',', '.');
@@ -47,13 +40,18 @@ export const store = {
 
 export function todayIso(): string {
   const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
-export function formatDate(iso: string, withYear = false): string {
-  const [y, m, d] = iso.split('-');
-  return withYear ? `${d}.${m}.${y}` : `${d}.${m}.`;
+/** Datum im Format der Sprache, z. B. 27.09. / 9/27 */
+export function dateFormatter(locale: Locale) {
+  const intl = messages(locale).intl;
+  const short = new Intl.DateTimeFormat(intl, { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+  const long = new Intl.DateTimeFormat(intl, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+  return (iso: string, withYear = false) => {
+    const d = new Date(`${iso}T00:00:00Z`);
+    return (withYear ? long : short).format(d);
+  };
 }
 
 export function $(sel: string, root: ParentNode = document): HTMLElement {

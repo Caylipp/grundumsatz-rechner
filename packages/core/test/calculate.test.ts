@@ -48,9 +48,11 @@ describe('calculate – Kaskade', () => {
     expect(r.formulas.find((f) => f.id === 'cunningham')!.weight).toBeGreaterThan(0);
   });
 
-  it('Frauen ohne Hüftumfang: Hinweis statt Navy', () => {
+  it('Frauen ohne Hüftumfang: Hinweis statt Navy, YMCA/RFM trotzdem', () => {
     const r = ok({ sex: 'female', age: 35, heightCm: 168, weightKg: 65, circumferences: { waistCm: 74, neckCm: 32 } });
-    expect(r.bodyComposition).toBeUndefined();
+    const sources = r.bodyComposition!.measurements.map((m) => m.source);
+    expect(sources).not.toContain('navy');
+    expect(sources).toEqual(expect.arrayContaining(['ymca', 'rfm']));
     expect(r.hints.some((h) => h.text.includes('Hüftumfang'))).toBe(true);
   });
 

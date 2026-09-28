@@ -1,202 +1,284 @@
 ---
-import { BODY_FAT_SOURCES, PAL_LEVELS, SPORT_LEVELS } from '@grundumsatz/core';
+import { BODY_FAT_RANGES, formatters, messages, palLevels, sportLevels, type Locale, type SkinfoldSite } from '@grundumsatz/core';
+import { UI_TEXT } from '../i18n';
 
-const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map((id) => ({ id, ...BODY_FAT_SOURCES[id] }));
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale];
+const F = t.form;
+const core = messages(locale);
+const fmt = formatters(locale);
+
+const bfSources = (['bia', 'bia8', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map((id) => ({ id, label: core.sources[id], range: BODY_FAT_RANGES[id] }));
+const sites: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'suprailiac', 'subscapular', 'midaxillary', 'biceps'];
 ---
 
-<section class="calc wrap" aria-label="Rechner">
+<section class="calc wrap" aria-label={t.nav.calculator}>
   <form id="calc-form" class="inputs" novalidate autocomplete="off">
     <!-- 1 Basis -->
-    <fieldset class="card group open-always">
+    <fieldset class="card group">
       <legend class="group-head">
         <span class="step-no">1</span>
-        <span class="group-title">Basisdaten <span class="req">Pflicht</span></span>
+        <span class="group-title">{F.basics.title} <span class="req">{F.required}</span></span>
       </legend>
       <div class="group-body">
         <div class="field">
-          <span class="label" id="sex-label">Geschlecht</span>
+          <span class="label" id="sex-label">{F.basics.sex}</span>
           <div class="seg" role="radiogroup" aria-labelledby="sex-label">
-            <label><input type="radio" name="sex" value="female" /><span>Frau</span></label>
-            <label><input type="radio" name="sex" value="male" /><span>Mann</span></label>
+            <label><input type="radio" name="sex" value="female" /><span>{F.basics.female}</span></label>
+            <label><input type="radio" name="sex" value="male" /><span>{F.basics.male}</span></label>
           </div>
-          <p class="hint small muted">Biologisches Geschlecht – es beeinflusst Muskel- und Fettanteil und damit die Formeln.</p>
+          <p class="hint small muted">{F.basics.sexHint}</p>
           <p class="err" data-error-for="sex"></p>
         </div>
         <div class="row3">
           <label class="field">
-            <span class="label">Alter</span>
-            <span class="unit-input"><input name="age" inputmode="numeric" placeholder="z. B. 34" /><span>Jahre</span></span>
+            <span class="label">{F.basics.age}</span>
+            <span class="unit-input"><input name="age" inputmode="numeric" placeholder="34" /><span>{F.basics.years}</span></span>
             <span class="err" data-error-for="age"></span>
           </label>
           <label class="field">
-            <span class="label">Größe</span>
-            <span class="unit-input"><input name="height" inputmode="decimal" placeholder="z. B. 175" /><span>cm</span></span>
+            <span class="label">{F.basics.height}</span>
+            <span class="unit-input"><input name="height" inputmode="decimal" placeholder="175" /><span>cm</span></span>
             <span class="err" data-error-for="heightCm"></span>
           </label>
           <label class="field">
-            <span class="label">Gewicht</span>
-            <span class="unit-input"><input name="weight" inputmode="decimal" placeholder="z. B. 72,5" /><span>kg</span></span>
+            <span class="label">{F.basics.weight}</span>
+            <span class="unit-input"><input name="weight" inputmode="decimal" placeholder={fmt.dec1(72.5)} /><span>kg</span></span>
             <span class="err" data-error-for="weightKg"></span>
           </label>
         </div>
       </div>
     </fieldset>
 
-    <p class="more-intro muted small">
-      Alles Weitere ist <strong>optional</strong> – jede Angabe macht das Ergebnis genauer.
-    </p>
+    <p class="more-intro muted small" set:html={F.optionalHtml} />
 
-    <!-- 2 Körperfett -->
-    <details class="card group" data-group="bodyfat">
-      <summary class="group-head">
-        <span class="step-no">2</span>
-        <span class="group-title">Körperfettanteil</span>
-        <span class="gain" data-gain="bodyfat"></span>
-        <span class="done-dot" data-done="bodyfat" aria-hidden="true"></span>
-      </summary>
-      <div class="group-body">
-        <p class="muted small">
-          Kennst du deinen Körperfettanteil? Dann wird aus der fettfreien Masse gerechnet (Katch-McArdle bzw. Cunningham). Wie genau das
-          ist, hängt stark von der Messmethode ab.
-        </p>
-        <div class="row2">
-          <label class="field">
-            <span class="label">Körperfett</span>
-            <span class="unit-input"><input name="bf" inputmode="decimal" placeholder="z. B. 22" /><span>%</span></span>
-            <span class="err" data-error-for="bodyFat"></span>
-          </label>
-          <label class="field">
-            <span class="label">Gemessen mit</span>
-            <select name="bfSource">
-              {bfSources.map((s) => <option value={s.id}>{s.label} (±{String(s.range).replace('.', ',')} %-Pkt.)</option>)}
-            </select>
-          </label>
-        </div>
-      </div>
-    </details>
-
-    <!-- 3 Umfänge -->
+    <!-- 2 Umfänge -->
     <details class="card group" data-group="circumferences">
       <summary class="group-head">
-        <span class="step-no">3</span>
-        <span class="group-title">Körperumfänge</span>
+        <span class="step-no">2</span>
+        <span class="group-title">{F.circ.title}</span>
         <span class="gain" data-gain="circumferences"></span>
         <span class="done-dot" data-done="circumferences" aria-hidden="true"></span>
       </summary>
       <div class="group-body">
-        <p class="muted small">
-          Kein Körperfettwert zur Hand? Mit einem Maßband schätzt die <strong>Navy-Methode</strong> den Körperfettanteil erstaunlich gut.
-        </p>
+        <p class="muted small" set:html={F.circ.introHtml} />
         <div class="row3">
           <label class="field">
-            <span class="label">Taille</span>
-            <span class="unit-input"><input name="waist" inputmode="decimal" placeholder="z. B. 84" /><span>cm</span></span>
+            <span class="label">{F.circ.waist}</span>
+            <span class="unit-input"><input name="waist" inputmode="decimal" placeholder="84" /><span>cm</span></span>
             <span class="err" data-error-for="waistCm"></span>
           </label>
           <label class="field">
-            <span class="label">Hals</span>
-            <span class="unit-input"><input name="neck" inputmode="decimal" placeholder="z. B. 37" /><span>cm</span></span>
+            <span class="label">{F.circ.neck}</span>
+            <span class="unit-input"><input name="neck" inputmode="decimal" placeholder="37" /><span>cm</span></span>
             <span class="err" data-error-for="neckCm"></span>
           </label>
           <label class="field" data-only="female">
-            <span class="label">Hüfte</span>
-            <span class="unit-input"><input name="hip" inputmode="decimal" placeholder="z. B. 98" /><span>cm</span></span>
+            <span class="label">{F.circ.hip}</span>
+            <span class="unit-input"><input name="hip" inputmode="decimal" placeholder="98" /><span>cm</span></span>
             <span class="err" data-error-for="hipCm"></span>
           </label>
         </div>
         <details class="howto small">
-          <summary>So misst du richtig</summary>
+          <summary>{F.circ.howto}</summary>
           <ul>
-            <li><strong>Taille:</strong> waagerecht auf Höhe des Bauchnabels, entspannt ausatmen, nicht einziehen.</li>
-            <li><strong>Hals:</strong> direkt unterhalb des Kehlkopfs, Maßband leicht nach vorne unten geneigt.</li>
-            <li data-only="female"><strong>Hüfte:</strong> an der breitesten Stelle des Gesäßes.</li>
-            <li>Morgens messen, Maßband anliegend, aber ohne einzuschnüren. Zweimal messen und mitteln.</li>
+            <li set:html={F.circ.howtoWaistHtml} />
+            <li set:html={F.circ.howtoNeckHtml} />
+            <li data-only="female" set:html={F.circ.howtoHipHtml} />
+            <li>{F.circ.howtoGeneral}</li>
           </ul>
         </details>
       </div>
     </details>
 
-    <!-- 4 Weitere Faktoren -->
-    <details class="card group" data-group="factors">
+    <!-- 3 Hautfalten -->
+    <details class="card group" data-group="caliper">
+      <summary class="group-head">
+        <span class="step-no">3</span>
+        <span class="group-title">{F.caliper.title}</span>
+        <span class="gain" data-gain="caliper"></span>
+        <span class="done-dot" data-done="caliper3" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small" set:html={F.caliper.introHtml} />
+        <label class="field">
+          <span class="label">{F.caliper.measurer}</span>
+          <select name="measurer">
+            <option value="self">{F.caliper.self}</option>
+            <option value="trained">{F.caliper.trained}</option>
+          </select>
+        </label>
+        <div class="caliper-status" id="caliper-status" aria-live="polite">
+          <div class="cs-row"><span class="cs-bar"><span id="cs3"></span></span><span class="small" id="cs3-text"></span></div>
+          <div class="cs-row"><span class="cs-bar"><span id="cs7"></span></span><span class="small" id="cs7-text"></span></div>
+        </div>
+        <div class="sites">
+          {
+            sites.map((site) => (
+              <label class="field site" data-site={site}>
+                <span class="label">
+                  {F.caliper.sites[site].label} <span class="tags" data-tags />
+                </span>
+                <span class="unit-input">
+                  <input name={`sf_${site}`} inputmode="decimal" placeholder="mm" />
+                  <span>mm</span>
+                </span>
+                <span class="site-howto">{F.caliper.sites[site].howto}</span>
+                <span class="err" data-error-for={`skinfold.${site}`} />
+              </label>
+            ))
+          }
+        </div>
+        <details class="howto small">
+          <summary>{F.caliper.howto}</summary>
+          <p>{F.caliper.howtoGeneral}</p>
+        </details>
+      </div>
+    </details>
+
+    <!-- 4 Körperfett -->
+    <details class="card group" data-group="bodyfat">
       <summary class="group-head">
         <span class="step-no">4</span>
-        <span class="group-title">Weitere Faktoren</span>
+        <span class="group-title">{F.bodyfat.title}</span>
+        <span class="gain" data-gain="bodyfat"></span>
+        <span class="done-dot" data-done="bodyfat" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small">{F.bodyfat.intro}</p>
+        <div class="row2">
+          <label class="field">
+            <span class="label">{F.bodyfat.percent}</span>
+            <span class="unit-input"><input name="bf" inputmode="decimal" placeholder="22" /><span>%</span></span>
+            <span class="err" data-error-for="bodyFat"></span>
+          </label>
+          <label class="field">
+            <span class="label">{F.bodyfat.source}</span>
+            <select name="bfSource">
+              {bfSources.map((s) => <option value={s.id}>{s.label} (±{fmt.num(s.range)} {F.bodyfat.pp})</option>)}
+            </select>
+          </label>
+        </div>
+        <div class="field" data-show-for-source="bia bia8">
+          <label class="field">
+            <span class="label">{F.bodyfat.readings}</span>
+            <span class="unit-input narrow"><input name="readings" inputmode="numeric" placeholder="1" /><span>×</span></span>
+            <span class="err" data-error-for="readings"></span>
+          </label>
+          <p class="hint small muted">{F.bodyfat.readingsHint}</p>
+        </div>
+      </div>
+    </details>
+
+    <!-- 5 Weitere Faktoren -->
+    <details class="card group" data-group="factors">
+      <summary class="group-head">
+        <span class="step-no">5</span>
+        <span class="group-title">{F.factors.title}</span>
         <span class="done-dot" data-done="factors" aria-hidden="true"></span>
       </summary>
       <div class="group-body">
         <label class="check">
           <input type="checkbox" name="athlete" />
-          <span><strong>Viel Muskelmasse</strong> – regelmäßiges Krafttraining oder Leistungssport seit über einem Jahr</span>
+          <span set:html={F.factors.athleteHtml} />
         </label>
         <div class="row2">
           <label class="field">
-            <span class="label">Schilddrüse</span>
+            <span class="label">{F.factors.thyroid}</span>
             <select name="thyroid">
-              <option value="">Keine Angabe</option>
-              <option value="normal">Gesund</option>
-              <option value="hypo_treated">Unterfunktion, behandelt</option>
-              <option value="hypo_untreated">Unterfunktion, unbehandelt</option>
-              <option value="hyper_treated">Überfunktion, behandelt</option>
-              <option value="hyper_untreated">Überfunktion, unbehandelt</option>
+              <option value="">{F.noAnswer}</option>
+              {Object.entries(F.factors.thyroidOptions).map(([v, l]) => <option value={v}>{l}</option>)}
             </select>
           </label>
           <label class="field" data-only="female">
-            <span class="label">Schwangerschaft / Stillzeit</span>
+            <span class="label">{F.factors.pregnancy}</span>
             <select name="pregnancy">
-              <option value="">Keine Angabe</option>
-              <option value="none">Nein</option>
-              <option value="t1">Schwanger, 1. Trimester</option>
-              <option value="t2">Schwanger, 2. Trimester</option>
-              <option value="t3">Schwanger, 3. Trimester</option>
-              <option value="breastfeeding">Stillzeit</option>
+              <option value="">{F.noAnswer}</option>
+              {Object.entries(F.factors.pregnancyOptions).map(([v, l]) => <option value={v}>{l}</option>)}
             </select>
           </label>
           <label class="field">
-            <span class="label">Schlaf pro Nacht (Ø)</span>
-            <span class="unit-input"><input name="sleep" inputmode="decimal" placeholder="z. B. 7" /><span>Std.</span></span>
+            <span class="label">{F.factors.sleep}</span>
+            <span class="unit-input"><input name="sleep" inputmode="decimal" placeholder="7" /><span>{F.factors.hours}</span></span>
             <span class="err" data-error-for="sleepHours"></span>
           </label>
           <label class="field">
-            <span class="label">Umgebung</span>
+            <span class="label">{F.factors.climate}</span>
             <select name="climate">
-              <option value="">Keine Angabe</option>
-              <option value="moderate">Gemäßigt</option>
-              <option value="cold">Oft kalt (kühle Wohnung, viel draußen)</option>
-              <option value="hot">Dauerhaft heiß</option>
+              <option value="">{F.noAnswer}</option>
+              {Object.entries(F.factors.climateOptions).map(([v, l]) => <option value={v}>{l}</option>)}
             </select>
           </label>
         </div>
         <label class="check">
           <input type="checkbox" name="diet" />
-          <span><strong>Längere Diät:</strong> seit ca. 3 Monaten oder länger im Kaloriendefizit bzw. deutlich abgenommen</span>
+          <span set:html={F.factors.dietHtml} />
         </label>
         <label class="check">
           <input type="checkbox" name="smoker" />
-          <span><strong>Rauchen</strong> (regelmäßig)</span>
+          <span set:html={F.factors.smokerHtml} />
         </label>
       </div>
     </details>
 
-    <!-- 5 Aktivität -->
+    <!-- 6 Gemessener Ruheumsatz -->
+    <details class="card group" data-group="measured">
+      <summary class="group-head">
+        <span class="step-no">6</span>
+        <span class="group-title">{F.measured.title} <span class="badge">★</span></span>
+        <span class="gain" data-gain="measured"></span>
+        <span class="done-dot" data-done="measured" aria-hidden="true"></span>
+      </summary>
+      <div class="group-body">
+        <p class="muted small" set:html={F.measured.introHtml} />
+        <div class="row2">
+          <label class="field">
+            <span class="label">{F.measured.kcal}</span>
+            <span class="unit-input"><input name="rmr" inputmode="numeric" placeholder="1650" /><span>kcal</span></span>
+            <span class="err" data-error-for="rmr"></span>
+          </label>
+          <label class="field">
+            <span class="label">{F.measured.method}</span>
+            <select name="rmrMethod">
+              <option value="lab">{core.rmrMethods.lab}</option>
+              <option value="handheld">{core.rmrMethods.handheld}</option>
+            </select>
+          </label>
+        </div>
+        <details class="howto small">
+          <summary>{F.measured.conditionsTitle}</summary>
+          <ul>{F.measured.conditions.map((c) => <li>{c}</li>)}</ul>
+        </details>
+        <details class="howto small">
+          <summary>{F.measured.whereTitle}</summary>
+          <ul>{F.measured.where.map((c) => <li>{c}</li>)}</ul>
+        </details>
+      </div>
+    </details>
+
+    <!-- 7 Aktivität -->
     <details class="card group" data-group="activity">
       <summary class="group-head">
-        <span class="step-no">5</span>
-        <span class="group-title">Alltag &amp; Sport <span class="muted small">→ Gesamtumsatz</span></span>
+        <span class="step-no">7</span>
+        <span class="group-title">{F.activity.title} <span class="muted small">{F.activity.arrow}</span></span>
         <span class="gain" data-gain="activity"></span>
         <span class="done-dot" data-done="activity" aria-hidden="true"></span>
       </summary>
       <div class="group-body">
-        <p class="muted small">Der Grundumsatz gilt für völlige Ruhe. Mit deinem Aktivitätsniveau (PAL) wird daraus der Gesamtumsatz.</p>
-        <div class="pal-list" role="radiogroup" aria-label="Aktivitätsniveau">
-          <label class="pal"><input type="radio" name="pal" value="" checked /><span><strong>Keine Angabe</strong></span></label>
+        <p class="muted small">{F.activity.intro}</p>
+        <div class="pal-list" role="radiogroup" aria-label={F.activity.title}>
+          <label class="pal"><input type="radio" name="pal" value="" checked /><span><strong>{F.activity.none}</strong></span></label>
           {
-            PAL_LEVELS.map((l) => (
+            palLevels(locale).map((l) => (
               <label class="pal">
                 <input type="radio" name="pal" value={l.id} />
                 <span>
                   <strong>{l.label}</strong>
                   <span class="muted small">
-                    {l.example} · PAL {String(l.pal).replace('.', ',')}
+                    {l.example} · PAL {fmt.num(l.pal)}
                   </span>
                 </span>
               </label>
@@ -204,45 +286,43 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
           }
         </div>
         <label class="field">
-          <span class="label">Zusätzlicher Sport</span>
+          <span class="label">{F.activity.sport}</span>
           <select name="sport">
-            {SPORT_LEVELS.map((s) => <option value={s.id}>{s.label}{s.add > 0 ? ` (+${String(s.add).replace('.', ',')} PAL)` : ''}</option>)}
+            {sportLevels(locale).map((s) => <option value={s.id}>{s.label}{s.add > 0 ? ` (+${fmt.num(s.add)} PAL)` : ''}</option>)}
           </select>
         </label>
       </div>
     </details>
 
-    <!-- 6 Verlauf -->
+    <!-- 8 Verlauf -->
     <a class="card group group-link" href="#verlauf" data-group="adaptive">
       <span class="group-head">
-        <span class="step-no">6</span>
-        <span class="group-title">Verlauf: echten Verbrauch messen <span class="badge">Königsweg</span></span>
+        <span class="step-no">8</span>
+        <span class="group-title">{F.adaptive.title} <span class="badge">{F.adaptive.badge}</span></span>
         <span class="done-dot" data-done="adaptive" aria-hidden="true"></span>
       </span>
-      <span class="group-body small muted" id="adaptive-teaser">
-        2–4 Wochen Gewicht und Kalorien notieren – daraus wird dein tatsächlicher Verbrauch berechnet. Zum Tagebuch ↓
-      </span>
+      <span class="group-body small muted" id="adaptive-teaser">{F.adaptive.teaser}</span>
     </a>
 
     <div class="form-actions">
       <label class="check small">
         <input type="checkbox" name="remember" checked />
-        <span>Eingaben auf diesem Gerät merken</span>
+        <span>{F.remember}</span>
       </label>
-      <button type="button" class="btn ghost small" id="reset-btn">Eingaben zurücksetzen</button>
+      <button type="button" class="btn ghost small" id="reset-btn">{F.reset}</button>
     </div>
   </form>
 
-  <aside class="result-col" aria-label="Ergebnis">
+  <aside class="result-col" aria-label={t.result.eyebrow}>
     <div class="card result" id="result" aria-live="polite">
       <div class="result-empty" id="result-empty">
-        <p class="eyebrow">Dein Grundumsatz</p>
-        <p class="big muted">– kcal</p>
-        <p class="muted">Gib Geschlecht, Alter, Größe und Gewicht ein – das Ergebnis erscheint sofort.</p>
+        <p class="eyebrow">{t.result.eyebrow}</p>
+        <p class="big muted">{t.result.emptyValue}</p>
+        <p class="muted">{t.result.empty}</p>
       </div>
       <div class="result-full" id="result-full" hidden>
-        <p class="eyebrow">Dein Grundumsatz</p>
-        <p class="big num"><span id="r-value">–</span> <span class="unit">kcal/Tag</span></p>
+        <p class="eyebrow">{t.result.eyebrow}</p>
+        <p class="big num"><span id="r-value">–</span> <span class="unit">{t.result.perDay}</span></p>
         <p class="range num" id="r-range"></p>
 
         <div class="meter" aria-hidden="true">
@@ -257,22 +337,22 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
 
         <div class="precision">
           <div class="precision-head small">
-            <span>Genauigkeit</span><strong id="r-precision-label"></strong>
+            <span>{t.result.precision}</span><strong id="r-precision-label"></strong>
           </div>
           <div class="precision-bar"><span id="r-precision-bar"></span></div>
         </div>
 
         <ul class="stages" id="r-stages"></ul>
 
-        <p class="method small"><span class="muted">Berechnet mit</span> <strong id="r-method"></strong></p>
+        <p class="method small"><span class="muted">{t.result.method}</span> <strong id="r-method"></strong></p>
 
         <div class="tdee" id="r-tdee" hidden>
-          <p class="eyebrow">Gesamtumsatz</p>
-          <p class="mid num"><span id="t-value"></span> <span class="unit">kcal/Tag</span></p>
+          <p class="eyebrow">{t.result.tdee}</p>
+          <p class="mid num"><span id="t-value"></span> <span class="unit">{t.result.perDay}</span></p>
           <p class="small muted num" id="t-detail"></p>
         </div>
 
-        <a class="small" href="#erklaerung">Wie kommt das Ergebnis zustande? ↓</a>
+        <a class="small" href="#erklaerung">{t.result.how}</a>
       </div>
     </div>
   </aside>
@@ -387,6 +467,11 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
   .gain:empty {
     display: none;
   }
+  @media (max-width: 420px) {
+    .gain {
+      display: none;
+    }
+  }
   .done-dot {
     width: 10px;
     height: 10px;
@@ -454,6 +539,9 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
     border-radius: var(--radius-sm);
     background: var(--surface);
     overflow: hidden;
+  }
+  .unit-input.narrow {
+    max-width: 160px;
   }
   .unit-input:focus-within {
     border-color: var(--accent);
@@ -576,6 +664,9 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
     margin: 8px 0 0;
     padding-left: 20px;
   }
+  .howto p {
+    margin: 8px 0 0;
+  }
   .form-actions {
     display: flex;
     justify-content: space-between;
@@ -584,8 +675,47 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
     flex-wrap: wrap;
     padding: 4px;
   }
-  [data-only='female'].hidden-sex {
-    display: none;
+
+  /* Caliper */
+  .sites {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+  }
+  @media (max-width: 560px) {
+    .sites {
+      grid-template-columns: 1fr;
+    }
+  }
+  .site-howto {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .caliper-status {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .cs-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cs-bar {
+    width: 90px;
+    flex: none;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+  .cs-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.3s;
   }
 
   /* Ergebnis */
@@ -753,6 +883,9 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
 </style>
 
 <style is:global>
+  [hidden] {
+    display: none !important;
+  }
   .stage-chip {
     font-size: 0.78rem;
     font-weight: 600;
@@ -768,5 +901,29 @@ const bfSources = (['bia', 'visual', 'caliper', 'bodpod', 'dexa'] as const).map(
   }
   .stage-chip.done::before {
     content: '✓ ';
+  }
+  .tags {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    min-width: 18px;
+    text-align: center;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+  .tag.t3 {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+  .site.missing .unit-input {
+    border-style: dashed;
+    border-color: var(--accent);
   }
 </style>

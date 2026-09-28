@@ -1,5 +1,6 @@
 import { linearRegression, mean, quad, sd, Z80 } from './stats';
-import type { AdaptiveResult, LogEntry } from './types';
+import { messages } from './i18n';
+import type { AdaptiveResult, Locale, LogEntry } from './types';
 
 /** Energiegehalt von 1 kg Körpergewichtsänderung (Mischgewebe) */
 export const KCAL_PER_KG = 7700;
@@ -35,7 +36,8 @@ function valid(n: number | null | undefined, min: number, max: number): n is num
  *   Verbrauch = Ø Kalorienzufuhr − Gewichtstrend (kg/Tag) × 7700 kcal/kg
  * Betrachtet werden die letzten 28 Tage.
  */
-export function adaptiveTdee(entries: LogEntry[]): AdaptiveResult {
+export function adaptiveTdee(entries: LogEntry[], locale: Locale = 'de'): AdaptiveResult {
+  const t = messages(locale).adaptive;
   const clean = new Map<number, { weight?: number; kcal?: number }>();
   for (const e of entries) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date)) continue;
@@ -48,7 +50,7 @@ export function adaptiveTdee(entries: LogEntry[]): AdaptiveResult {
 
   const allDays = [...clean.keys()].sort((a, b) => a - b);
   if (allDays.length === 0) {
-    return { status: 'insufficient', days: 0, weightDays: 0, kcalDays: 0, reasons: ['Noch keine Einträge.'] };
+    return { status: 'insufficient', days: 0, weightDays: 0, kcalDays: 0, reasons: [t.noEntries] };
   }
   const lastDay = allDays[allDays.length - 1]!;
   const windowStart = lastDay - ADAPTIVE_WINDOW_DAYS + 1;
@@ -60,11 +62,11 @@ export function adaptiveTdee(entries: LogEntry[]): AdaptiveResult {
   const kcalVals = days.filter((d) => clean.get(d)!.kcal !== undefined).map((d) => clean.get(d)!.kcal!);
 
   const reasons: string[] = [];
-  if (span < ADAPTIVE_MIN_DAYS) reasons.push(`Mindestens ${ADAPTIVE_MIN_DAYS} Tage Zeitraum nötig – aktuell ${span}.`);
-  if (weightPts.length < MIN_WEIGHT_DAYS) reasons.push(`Mindestens ${MIN_WEIGHT_DAYS} Gewichtsmessungen nötig – aktuell ${weightPts.length}.`);
-  if (kcalVals.length < MIN_KCAL_DAYS) reasons.push(`Mindestens ${MIN_KCAL_DAYS} Tage mit Kalorienangabe nötig – aktuell ${kcalVals.length}.`);
+  if (span < ADAPTIVE_MIN_DAYS) reasons.push(t.minDays(ADAPTIVE_MIN_DAYS, span));
+  if (weightPts.length < MIN_WEIGHT_DAYS) reasons.push(t.minWeights(MIN_WEIGHT_DAYS, weightPts.length));
+  if (kcalVals.length < MIN_KCAL_DAYS) reasons.push(t.minKcal(MIN_KCAL_DAYS, kcalVals.length));
   else if (kcalVals.length / span < MIN_KCAL_COVERAGE)
-    reasons.push(`Kalorien an mindestens ${Math.round(MIN_KCAL_COVERAGE * 100)} % der Tage eintragen – aktuell ${Math.round((kcalVals.length / span) * 100)} %.`);
+    reasons.push(t.coverage(Math.round(MIN_KCAL_COVERAGE * 100), Math.round((kcalVals.length / span) * 100)));
 
   if (reasons.length > 0) {
     return { status: 'insufficient', days: span, weightDays: weightPts.length, kcalDays: kcalVals.length, reasons };
@@ -90,15 +92,9 @@ export function adaptiveTdee(entries: LogEntry[]): AdaptiveResult {
 
   const warnings: string[] = [];
   const weeklyChange = reg.slope * 7;
-  if (Math.abs(weeklyChange) > 1) {
-    warnings.push('Sehr schnelle Gewichtsänderung: Anfangs sind das oft Wasser und Glykogen. Das Ergebnis wird mit mehr Wochen verlässlicher.');
-  }
-  if (kcalVals.length / span < 0.85) {
-    warnings.push('An einigen Tagen fehlen Kalorienangaben – es wird angenommen, dass du an diesen Tagen ähnlich viel gegessen hast.');
-  }
-  if (span < 21) {
-    warnings.push('Unter 3 Wochen schwankt das Ergebnis noch deutlich. Ideal sind 3–4 Wochen.');
-  }
+  if (Math.abs(weeklyChange) > 1) warnings.push(t.fastChange);
+  if (kcalVals.length / span < 0.85) warnings.push(t.missingDays);
+  if (span < 21) warnings.push(t.short);
 
   // Geglätteter Trend: zentrierter Mittelwert über ±3 Tage (ohne den Nachlauf eines EMA)
   const trend: { date: string; weight: number }[] = [];
