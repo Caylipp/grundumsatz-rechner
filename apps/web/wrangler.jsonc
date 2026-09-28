@@ -1,0 +1,9 @@
+// Cloudflare Workers (Static Assets): liefert nur die fertig gebaute statische Seite aus – kein Server-Code, kein Adapter.
+{
+  "name": "grundumsatz-rechner",
+  "compatibility_date": "2026-09-26",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash"
+  }
+}
