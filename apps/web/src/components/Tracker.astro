@@ -1,58 +1,63 @@
 ---
+import { formatters, type Locale } from '@grundumsatz/core';
+import { UI_TEXT } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale].tracker;
+const fmt = formatters(locale);
 ---
 
 <section id="verlauf" class="wrap tracker" aria-labelledby="tracker-h">
-  <h2 id="tracker-h">Verlauf: deinen echten Verbrauch messen</h2>
-  <p class="lead muted">
-    Formeln schätzen – dein Körper misst. Wenn du 2–4 Wochen lang dein Gewicht (am besten täglich morgens) und deine gegessenen Kalorien
-    notierst, lässt sich dein <strong>tatsächlicher Gesamtumsatz</strong> zurückrechnen: Wer bei 2.200 kcal pro Tag ein halbes Kilo pro
-    Woche abnimmt, verbraucht rund 2.750 kcal.
-  </p>
+  <h2 id="tracker-h">{t.h2}</h2>
+  <p class="lead muted" set:html={t.leadHtml} />
 
   <div class="tracker-grid">
     <div class="card pad">
-      <h3>Eintrag hinzufügen</h3>
+      <h3>{t.add}</h3>
       <form id="log-form" class="log-form" novalidate>
         <label class="field">
-          <span class="label">Datum</span>
+          <span class="label">{t.date}</span>
           <input type="date" name="date" required />
         </label>
         <label class="field">
-          <span class="label">Gewicht (kg)</span>
-          <input name="weight" inputmode="decimal" placeholder="z. B. 78,4" />
+          <span class="label">{t.weight}</span>
+          <input name="weight" inputmode="decimal" placeholder={fmt.dec1(78.4)} />
         </label>
         <label class="field">
-          <span class="label">Gegessen (kcal)</span>
-          <input name="kcal" inputmode="numeric" placeholder="z. B. 2150" />
+          <span class="label">{t.kcal}</span>
+          <input name="kcal" inputmode="numeric" placeholder="2150" />
         </label>
-        <button class="btn" type="submit">Speichern</button>
+        <button class="btn" type="submit">{t.save}</button>
       </form>
       <p class="err small" id="log-error"></p>
-      <p class="small muted">Einen Wert leer lassen ist okay – z. B. nur das Gewicht eintragen. Ein weiterer Eintrag am selben Tag überschreibt den alten.</p>
+      <p class="small muted">{t.hint}</p>
 
       <div class="status" id="adaptive-status"></div>
 
       <div class="tools">
-        <button class="btn ghost small" type="button" id="log-demo">Beispieldaten laden</button>
-        <button class="btn ghost small" type="button" id="log-export">CSV exportieren</button>
+        <button class="btn ghost small" type="button" id="log-demo">{t.demo}</button>
+        <button class="btn ghost small" type="button" id="log-export">{t.exportCsv}</button>
         <label class="btn ghost small file-btn">
-          CSV importieren
+          {t.importCsv}
           <input type="file" accept=".csv,text/csv,text/plain" id="log-import" class="sr-only" />
         </label>
-        <button class="btn ghost small" type="button" id="log-clear">Verlauf löschen</button>
+        <button class="btn ghost small" type="button" id="log-clear">{t.clear}</button>
       </div>
     </div>
 
     <div class="card pad">
-      <h3>Gewichtstrend</h3>
+      <h3>{t.chart}</h3>
       <div class="chart" id="log-chart">
-        <p class="muted small">Noch keine Gewichtseinträge.</p>
+        <p class="muted small">{t.noWeights}</p>
       </div>
       <details class="entries">
-        <summary><span id="log-count">0 Einträge</span></summary>
+        <summary><span id="log-count">{t.entries(0)}</span></summary>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Datum</th><th>Gewicht</th><th>kcal</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+            <thead><tr><th>{t.thDate}</th><th>{t.thWeight}</th><th>{t.thKcal}</th><th><span class="sr-only">{t.action}</span></th></tr></thead>
             <tbody id="log-rows"></tbody>
           </table>
         </div>

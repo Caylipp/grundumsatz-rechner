@@ -1,57 +1,81 @@
 ---
 import '../styles/global.css';
+import type { Locale } from '@grundumsatz/core';
+import { LOCALE_ORDER, UI_TEXT, asset, localePath } from '../i18n';
 
 interface Props {
+  locale: Locale;
+  /** Seite relativ zur Sprachwurzel ("" oder "methodik/"); null = nur deutsch (Rechtstexte) */
+  page: string | null;
   title: string;
   description: string;
   jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description, jsonLd = [] } = Astro.props;
+const { locale, page, title, description, jsonLd = [] } = Astro.props;
+const t = UI_TEXT[locale];
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const alternates = page === null ? [] : LOCALE_ORDER.map((l) => ({ locale: l, href: new URL(localePath(l, page), Astro.site).href }));
+const here = Astro.url.pathname;
 const nav = [
-  { href: '/', label: 'Rechner' },
-  { href: '/methodik/', label: 'So rechnen wir' },
+  { href: localePath(locale, ''), label: t.nav.calculator },
+  { href: localePath(locale, 'methodik/'), label: t.nav.method },
 ];
+const norm = (p: string) => p.replace(/\/$/, '');
 ---
 
 <!doctype html>
-<html lang="de">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.locale} href={a.href} />)}
+    {alternates.length > 0 && <link rel="alternate" hreflang="x-default" href={alternates[0]!.href} />}
     <meta name="theme-color" content="#0f7b5f" />
-    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/icon.svg" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href={asset('icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={asset('icon.svg')} />
+    <link rel="manifest" href={asset('manifest.webmanifest')} />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content="de_DE" />
+    <meta property="og:locale" content={t.meta.ogLocale} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
   </head>
-  <body>
-    <a class="sr-only" href="#main">Zum Inhalt springen</a>
+  <body data-base={asset('')}>
+    <a class="sr-only" href="#main">{t.nav.skip}</a>
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="/">
-          <img src="/icon.svg" alt="" width="28" height="28" />
-          <span>Grundumsatz-Rechner</span>
+        <a class="brand" href={localePath(locale, '')}>
+          <img src={asset('icon.svg')} alt="" width="28" height="28" />
+          <span>{locale === 'de' ? 'Grundumsatz-Rechner' : locale === 'es' ? 'Calculadora TMB' : locale === 'vi' ? 'Máy tính BMR' : 'BMR Calculator'}</span>
         </a>
-        <nav aria-label="Hauptnavigation">
+        <div class="bar-right">
+          <nav aria-label={t.nav.calculator}>
+            {
+              nav.map((n) => (
+                <a href={n.href} aria-current={norm(n.href) === norm(here) ? 'page' : undefined}>
+                  {n.label}
+                </a>
+              ))
+            }
+          </nav>
           {
-            nav.map((n) => (
-              <a href={n.href} aria-current={(n.href.replace(/\/$/, '') || '/') === path ? 'page' : undefined}>
-                {n.label}
-              </a>
-            ))
+            alternates.length > 0 && (
+              <nav class="langs" aria-label={t.nav.language}>
+                {alternates.map((a) => (
+                  <a href={a.href} hreflang={a.locale} lang={a.locale} title={UI_TEXT[a.locale].meta.langName} aria-current={a.locale === locale ? 'true' : undefined}>
+                    {a.locale.toUpperCase()}
+                  </a>
+                ))}
+              </nav>
+            )
           }
-        </nav>
+        </div>
       </div>
     </header>
 
@@ -61,26 +85,20 @@ const nav = [
 
     <footer class="site-footer">
       <div class="wrap">
-        <p class="disclaimer">
-          <strong>Keine medizinische Beratung.</strong> Die Ergebnisse sind Schätzungen auf Basis wissenschaftlicher Formeln und ersetzen
-          keine ärztliche oder ernährungstherapeutische Beratung. Bei Erkrankungen, in der Schwangerschaft und bei Essstörungen bitte
-          fachlichen Rat einholen.
-        </p>
-        <p class="muted small">
-          Datenschutz: Alle Eingaben werden ausschließlich lokal in deinem Browser verarbeitet und gespeichert. Es gibt keine Konten,
-          keine Cookies und kein Tracking.
-        </p>
-        <nav class="footer-nav small" aria-label="Rechtliches">
-          <a href="/methodik/">Methodik &amp; Quellen</a>
-          <a href="/datenschutz/">Datenschutz</a>
-          <a href="/impressum/">Impressum</a>
+        <p class="disclaimer"><strong>{t.footer.disclaimerStrong}</strong> {t.footer.disclaimer}</p>
+        <p class="muted small">{t.footer.privacy}</p>
+        <nav class="footer-nav small" aria-label="Legal">
+          <a href={localePath(locale, 'methodik/')}>{t.footer.method}</a>
+          <a href={asset('datenschutz/')} hreflang="de">{t.footer.privacyLink} {t.footer.legalGerman}</a>
+          <a href={asset('impressum/')} hreflang="de">{t.footer.imprint} {t.footer.legalGerman}</a>
         </nav>
       </div>
     </footer>
 
     <script>
       if ('serviceWorker' in navigator && location.protocol === 'https:') {
-        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+        const base = document.body.dataset.base ?? '/';
+        window.addEventListener('load', () => navigator.serviceWorker.register(`${base}sw.js`).catch(() => {}));
       }
     </script>
   </body>
@@ -95,8 +113,16 @@ const nav = [
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 8px 16px;
     min-height: 60px;
+    flex-wrap: wrap;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px 20px;
     flex-wrap: wrap;
   }
   .brand {
@@ -125,6 +151,22 @@ const nav = [
     text-decoration-color: var(--accent);
     text-decoration-thickness: 2px;
     text-underline-offset: 6px;
+  }
+  .langs {
+    gap: 2px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px;
+  }
+  .langs a {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .langs a[aria-current='true'] {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
   }
   .site-footer {
     margin-top: 64px;

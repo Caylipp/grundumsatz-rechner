@@ -1,0 +1,107 @@
+---
+import type { Locale } from '@grundumsatz/core';
+import Base from '../layouts/Base.astro';
+import Calculator from './Calculator.astro';
+import Explanation from './Explanation.astro';
+import Tracker from './Tracker.astro';
+import { UI_TEXT, localePath } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: t.meta.title.split('|').pop()!.trim(),
+    applicationCategory: 'HealthApplication',
+    operatingSystem: 'Web',
+    inLanguage: locale,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+    description: t.meta.description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    inLanguage: locale,
+    mainEntity: t.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+
+<Base locale={locale} page="" title={t.meta.title} description={t.meta.description} jsonLd={jsonLd}>
+  <header class="hero wrap">
+    <h1>{t.hero.h1}</h1>
+    <p class="lead" set:html={t.hero.leadHtml} />
+  </header>
+
+  <Calculator locale={locale} />
+  <Explanation locale={locale} />
+  <Tracker locale={locale} />
+
+  <section class="wrap seo" aria-labelledby="faq-h">
+    <h2 id="faq-h">{t.faqTitle}</h2>
+    <div class="faq">
+      {
+        t.faq.map((f) => (
+          <details class="card">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+    <p class="more"><a href={localePath(locale, 'methodik/')}>{t.faqMore}</a></p>
+  </section>
+
+  <script>
+    import '../scripts/app';
+  </script>
+</Base>
+
+<style>
+  .hero {
+    padding-top: 36px;
+    padding-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    margin: 0 0 10px;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 720px;
+    margin: 0;
+  }
+  .seo {
+    margin-top: 56px;
+  }
+  .seo h2 {
+    font-size: 1.6rem;
+  }
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 820px;
+  }
+  .faq details {
+    padding: 14px 18px;
+    box-shadow: none;
+  }
+  .faq summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+  .faq p {
+    margin: 10px 0 0;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: 18px;
+  }
+</style>

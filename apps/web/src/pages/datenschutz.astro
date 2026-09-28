@@ -2,17 +2,16 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="Datenschutz | Grundumsatz-Rechner" description="Datenschutzerklärung des Grundumsatz-Rechners: Alle Daten bleiben lokal in deinem Browser.">
+<Base locale="de" page={null} title="Datenschutz | Grundumsatz-Rechner" description="Datenschutzerklärung des Grundumsatz-Rechners: Alle Daten bleiben lokal in deinem Browser.">
   <article class="wrap prose page">
     <h1>Datenschutz</h1>
     <p class="note warn">
-      Vorlage – vor der Veröffentlichung um Verantwortliche:n, Hosting-Anbieter und ggf. Werbe-/Affiliate-Dienste ergänzen und rechtlich
-      prüfen lassen.
+      Vorlage – vor der öffentlichen Bewerbung um Verantwortliche:n ergänzen, bei Werbung/Affiliate erweitern und rechtlich prüfen lassen.
     </p>
 
     <h2>Kurz gesagt</h2>
     <p>
-      Der Rechner arbeitet vollständig in deinem Browser. Deine Eingaben – auch Gesundheitsdaten wie Gewicht, Körperfett oder
+      Der Rechner arbeitet vollständig in deinem Browser. Deine Eingaben – auch Gesundheitsdaten wie Gewicht, Körperfett, Hautfalten oder
       Schwangerschaft – werden <strong>nicht</strong> an uns oder Dritte übertragen. Es gibt keine Benutzerkonten, keine Cookies, keine
       Analyse- oder Tracking-Dienste und keine extern eingebundenen Schriften.
     </p>
@@ -28,8 +27,11 @@ import Base from '../layouts/Base.astro';
 
     <h2>Hosting</h2>
     <p>
-      Beim Aufruf der Seite verarbeitet der Webserver technisch notwendige Daten (z. B. IP-Adresse, Zeitpunkt, abgerufene Datei) in
-      Server-Logfiles. [Hosting-Anbieter, Speicherdauer und Rechtsgrundlage Art. 6 Abs. 1 lit. f DSGVO hier ergänzen.]
+      Die Seite wird über GitHub Pages bereitgestellt (GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA). Beim
+      Aufruf verarbeitet GitHub technisch notwendige Daten wie deine IP-Adresse, um die Seite auszuliefern und die Sicherheit des Dienstes
+      zu gewährleisten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer sicheren und stabilen
+      Bereitstellung). GitHub ist unter dem EU-US Data Privacy Framework zertifiziert. Weitere Informationen:
+      <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub-Datenschutzerklärung</a>.
     </p>
 
     <h2>Verantwortlich</h2>

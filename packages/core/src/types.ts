@@ -1,7 +1,22 @@
+export type Locale = 'de' | 'en' | 'es' | 'vi';
+
 export type Sex = 'male' | 'female';
 
 /** Messmethode für einen direkt angegebenen Körperfettanteil. */
-export type BodyFatSource = 'dexa' | 'bodpod' | 'caliper' | 'bia' | 'visual';
+export type BodyFatSource = 'dexa' | 'bodpod' | 'caliper' | 'bia8' | 'bia' | 'visual';
+
+/** Vom Rechner selbst geschätzte Körperfettwerte */
+export type DerivedBodyFatSource = 'navy' | 'ymca' | 'rfm' | 'jp3' | 'jp7' | 'dw4';
+
+export type AnyBodyFatSource = BodyFatSource | DerivedBodyFatSource;
+
+/** Hautfalten-Messstellen (Caliper) */
+export type SkinfoldSite = 'chest' | 'abdomen' | 'thigh' | 'triceps' | 'suprailiac' | 'subscapular' | 'midaxillary' | 'biceps';
+
+export type SkinfoldMeasurer = 'self' | 'trained';
+
+/** Methode einer direkten Messung des Ruheumsatzes (indirekte Kalorimetrie) */
+export type RmrMethod = 'lab' | 'handheld';
 
 export type ThyroidStatus = 'normal' | 'hypo_treated' | 'hypo_untreated' | 'hyper_treated' | 'hyper_untreated';
 export type PregnancyStatus = 'none' | 't1' | 't2' | 't3' | 'breastfeeding';
@@ -37,8 +52,14 @@ export interface Inputs {
   age: number;
   heightCm: number;
   weightKg: number;
-  bodyFat?: { percent: number; source: BodyFatSource };
+  /** Direkt angegebener Körperfettanteil. `readings` = Anzahl gemittelter Messungen (bei Waagen sinnvoll). */
+  bodyFat?: { percent: number; source: BodyFatSource; readings?: number };
   circumferences?: { waistCm?: number; neckCm?: number; hipCm?: number };
+  /** Hautfaltendicken in mm */
+  skinfolds?: Partial<Record<SkinfoldSite, number>>;
+  skinfoldMeasurer?: SkinfoldMeasurer;
+  /** Direkt gemessener Ruheumsatz (indirekte Kalorimetrie) */
+  measuredRmr?: { kcal: number; method: RmrMethod };
   /** Kraft-/Ausdauersportler:in mit überdurchschnittlicher Muskelmasse → Cunningham statt Katch-McArdle. */
   athlete?: boolean;
   activity?: Activity;
@@ -64,8 +85,10 @@ export interface Step {
   deltaRange: number;
 }
 
+export type FormulaId = 'mifflin' | 'harris_benedict' | 'katch_mcardle' | 'cunningham' | 'measured';
+
 export interface FormulaComparison {
-  id: 'mifflin' | 'harris_benedict' | 'katch_mcardle' | 'cunningham';
+  id: FormulaId;
   name: string;
   kcal: number;
   /** Gewicht im Endergebnis (0–1), 0 = nur zum Vergleich */
@@ -74,10 +97,12 @@ export interface FormulaComparison {
 }
 
 export interface BodyFatMeasurement {
-  source: BodyFatSource | 'navy';
+  source: AnyBodyFatSource;
   label: string;
   percent: number;
   range: number;
+  /** Methodengruppe: Werte einer Gruppe sind nicht unabhängig voneinander */
+  group: 'direct' | 'circumference' | 'caliper';
 }
 
 export interface BodyComposition {
@@ -142,7 +167,16 @@ export interface TdeeResult extends Estimate {
   impliedPal?: number;
 }
 
-export type StageId = 'basis' | 'bodyfat' | 'circumferences' | 'factors' | 'activity' | 'adaptive';
+export type StageId =
+  | 'basis'
+  | 'bodyfat'
+  | 'circumferences'
+  | 'caliper3'
+  | 'caliper7'
+  | 'factors'
+  | 'measured'
+  | 'activity'
+  | 'adaptive';
 
 export interface Stage {
   id: StageId;

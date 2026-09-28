@@ -1,21 +1,40 @@
 import {
+  DW4_SITES,
+  JP3_SITES,
+  JP7_SITES,
   adaptiveTdee,
   calculate,
   dayNumber,
+  formatters,
   isoFromDay,
   type AdaptiveResult,
+  type BodyFatSource,
   type CalcResult,
   type FieldError,
   type Inputs,
+  type Locale,
   type LogEntry,
   type Modifiers,
+  type RmrMethod,
+  type Sex,
+  type SkinfoldSite,
 } from '@grundumsatz/core';
+import { UI_TEXT, isLocale } from '../i18n';
 import { renderChart } from './chart';
-import { $, dec1, dec2, esc, formatDate, int, parseNum, signed, store, todayIso } from './util';
+import { $, dateFormatter, esc, parseNum, store, todayIso } from './util';
 
 const FORM_KEY = 'grundumsatz:form';
 const LOG_KEY = 'grundumsatz:log';
 const REMEMBER_KEY = 'grundumsatz:remember';
+
+const htmlLang = document.documentElement.lang;
+const locale: Locale = isLocale(htmlLang) ? htmlLang : 'de';
+const T = UI_TEXT[locale];
+const f = formatters(locale);
+const fd = dateFormatter(locale);
+const signed = (x: number, fmt: (n: number) => string = f.int) => (Math.round(x) > 0 ? '+' : Math.round(x) < 0 ? '−' : '±') + fmt(Math.abs(x));
+
+const SITES: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'suprailiac', 'subscapular', 'midaxillary', 'biceps'];
 
 const form = $('#calc-form') as HTMLFormElement;
 const logForm = $('#log-form') as HTMLFormElement;
@@ -67,26 +86,42 @@ function restore(state: FormState) {
   }
 }
 
-interface ReadOutcome {
-  inputs: Partial<Inputs>;
-  complete: boolean;
+function currentSex(): Sex | undefined {
+  const s = val('sex');
+  return s === 'male' || s === 'female' ? s : undefined;
 }
 
-function readInputs(): ReadOutcome {
-  const sexRaw = val('sex');
-  const sex = sexRaw === 'male' || sexRaw === 'female' ? sexRaw : undefined;
+function readInputs(): { inputs: Partial<Inputs>; complete: boolean } {
+  const sex = currentSex();
   const age = parseNum(val('age'));
   const heightCm = parseNum(val('height'));
   const weightKg = parseNum(val('weight'));
   const inputs: Partial<Inputs> = { sex, age, heightCm, weightKg };
 
   const bf = parseNum(val('bf'));
-  if (bf !== undefined) inputs.bodyFat = { percent: bf, source: val('bfSource') as NonNullable<Inputs['bodyFat']>['source'] };
+  if (bf !== undefined) {
+    const source = val('bfSource') as BodyFatSource;
+    const readings = source === 'bia' || source === 'bia8' ? parseNum(val('readings')) : undefined;
+    inputs.bodyFat = { percent: bf, source, ...(readings !== undefined ? { readings } : {}) };
+  }
 
   const waistCm = parseNum(val('waist'));
   const neckCm = parseNum(val('neck'));
   const hipCm = sex === 'female' ? parseNum(val('hip')) : undefined;
   if (waistCm !== undefined || neckCm !== undefined || hipCm !== undefined) inputs.circumferences = { waistCm, neckCm, hipCm };
+
+  const folds: Partial<Record<SkinfoldSite, number>> = {};
+  for (const site of SITES) {
+    const v = parseNum(val(`sf_${site}`));
+    if (v !== undefined) folds[site] = v;
+  }
+  if (Object.keys(folds).length > 0) {
+    inputs.skinfolds = folds;
+    inputs.skinfoldMeasurer = val('measurer') === 'trained' ? 'trained' : 'self';
+  }
+
+  const rmr = parseNum(val('rmr'));
+  if (rmr !== undefined) inputs.measuredRmr = { kcal: rmr, method: (val('rmrMethod') || 'lab') as RmrMethod };
 
   if (checked('athlete')) inputs.athlete = true;
 
@@ -112,40 +147,75 @@ function readInputs(): ReadOutcome {
 function showErrors(errors: FieldError[], onlyFilled: boolean) {
   const byField = new Map(errors.map((e) => [e.field, e.message]));
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-error-for]'))) {
-    const f = el.dataset.errorFor!;
-    let msg = byField.get(f) ?? '';
-    if (onlyFilled && msg.endsWith('fehlt.')) msg = '';
-    if (onlyFilled && f === 'sex') msg = '';
+    const key = el.dataset.errorFor!;
+    let msg = byField.get(key) ?? '';
+    if (onlyFilled && (key === 'sex' || ['age', 'heightCm', 'weightKg'].includes(key)) && isMissing(key)) msg = '';
     el.textContent = msg;
     el.closest('.field')?.classList.toggle('invalid', msg !== '');
   }
 }
 
-function toggleSexFields() {
-  const female = val('sex') === 'female';
-  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-only="female"]'))) {
-    el.classList.toggle('hidden-sex', !female);
-    el.hidden = !female;
+function isMissing(key: string): boolean {
+  const name = { sex: 'sex', age: 'age', heightCm: 'height', weightKg: 'weight' }[key];
+  return !name || val(name).trim() === '';
+}
+
+/** Zeigt/versteckt Felder je nach Geschlecht und Messmethode, aktualisiert die Caliper-Anzeige. */
+function syncVisibility() {
+  const sex = currentSex();
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-only="female"]'))) el.hidden = sex !== 'female';
+  const source = val('bfSource');
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-show-for-source]'))) {
+    el.hidden = !el.dataset.showForSource!.split(' ').includes(source);
   }
+  syncCaliper(sex ?? 'male');
+}
+
+function syncCaliper(sex: Sex) {
+  const set3 = JP3_SITES[sex];
+  const filled = new Set(SITES.filter((s) => {
+    const v = parseNum(val(`sf_${s}`));
+    return v !== undefined && !Number.isNaN(v);
+  }));
+  const missing3 = set3.filter((s) => !filled.has(s));
+  const missing7 = JP7_SITES.filter((s) => !filled.has(s));
+  const target = missing3.length > 0 ? missing3 : missing7;
+
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('.site[data-site]'))) {
+    const site = el.dataset.site as SkinfoldSite;
+    const in3 = set3.includes(site);
+    const in7 = JP7_SITES.includes(site);
+    const in4 = DW4_SITES.includes(site);
+    el.style.order = String(in3 ? set3.indexOf(site) : in7 ? 10 + JP7_SITES.indexOf(site) : 20);
+    const tags = el.querySelector<HTMLElement>('[data-tags]');
+    if (tags) {
+      tags.innerHTML = [in3 ? `<span class="tag t3">${T.form.caliper.tag3}</span>` : '', in7 ? `<span class="tag">${T.form.caliper.tag7}</span>` : '', in4 ? `<span class="tag">${T.form.caliper.tag4}</span>` : ''].join('');
+    }
+    el.classList.toggle('missing', filled.size > 0 && target.includes(site));
+  }
+
+  $('#cs3').style.width = `${((3 - missing3.length) / 3) * 100}%`;
+  $('#cs3-text').textContent = missing3.length === 0 ? T.form.caliper.done3 : T.form.caliper.status3(missing3.length);
+  $('#cs7').style.width = `${((7 - missing7.length) / 7) * 100}%`;
+  $('#cs7-text').textContent = missing7.length === 0 ? T.form.caliper.done7 : T.form.caliper.status7(missing7.length);
 }
 
 // ─────────────────────────────────────────────────────────────── Ergebnis
 
 function update() {
-  toggleSexFields();
+  syncVisibility();
   const { inputs, complete } = readInputs();
-
   if (checked('remember')) store.set(FORM_KEY, snapshot());
 
   if (!complete) {
     // Fehler nur für bereits ausgefüllte, ungültige Felder anzeigen
-    const probe = calculate({ sex: 'male', age: 30, heightCm: 175, weightKg: 75, ...stripUndefined(inputs) } as Inputs, { suggestions: false });
+    const probe = calculate({ sex: 'male', age: 30, heightCm: 175, weightKg: 75, ...stripUndefined(inputs) } as Inputs, { suggestions: false, locale });
     showErrors(probe.ok ? [] : probe.errors, true);
     renderEmpty();
     return;
   }
 
-  const result = calculate(inputs as Inputs);
+  const result = calculate(inputs as Inputs, { locale });
   if (!result.ok) {
     showErrors(result.errors, false);
     renderEmpty();
@@ -158,8 +228,8 @@ function update() {
   renderTrackerStatus(result.adaptive, result);
 }
 
-function stripUndefined<T extends object>(o: T): Partial<T> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
+function stripUndefined<O extends object>(o: O): Partial<O> {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<O>;
 }
 
 function renderEmpty() {
@@ -170,33 +240,33 @@ function renderEmpty() {
   $('#explain-body').hidden = true;
   $('#mini-result').hidden = true;
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-gain]'))) el.textContent = '';
-  renderTrackerStatus(log.length ? adaptiveTdee(log) : undefined, undefined);
+  renderTrackerStatus(log.length ? adaptiveTdee(log, locale) : undefined, undefined);
 }
 
 function animateValue(el: HTMLElement, to: number) {
   const from = shownValue || to * 0.92;
   shownValue = to;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    el.textContent = int(to);
+    el.textContent = f.int(to);
     return;
   }
   const t0 = performance.now();
-  const dur = 450;
-  const tick = (t: number) => {
-    const k = Math.min(1, (t - t0) / dur);
+  const tick = (now: number) => {
+    const k = Math.min(1, (now - t0) / 450);
     const e = 1 - Math.pow(1 - k, 3);
-    el.textContent = int(from + (to - from) * e);
+    el.textContent = f.int(from + (to - from) * e);
     if (k < 1) requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
 }
 
 function renderResult(r: CalcResult) {
+  const R = T.result;
   $('#result-empty').hidden = true;
   $('#result-full').hidden = false;
   const { value, range } = r.bmr;
   animateValue($('#r-value'), value);
-  $('#r-range').textContent = `± ${int(range)} kcal · wahrscheinlich ${int(value - range)} – ${int(value + range)} kcal`;
+  $('#r-range').textContent = R.range(f.int(range), f.int(value - range), f.int(value + range));
 
   // Genauigkeitsbalken: Basisbereich (gestrichelt) vs. aktueller Bereich
   const basis = r.steps[0]!.estimate;
@@ -213,49 +283,47 @@ function renderResult(r: CalcResult) {
   ghost.style.left = pos(basis.value - basis.range);
   ghost.style.width = `${((2 * basis.range) / (hi - lo)) * 100}%`;
   $('#m-mark').style.left = pos(value);
-  $('#m-min').textContent = int(lo);
-  $('#m-max').textContent = int(hi);
+  $('#m-min').textContent = f.int(lo);
+  $('#m-max').textContent = f.int(hi);
 
-  $('#r-narrow').innerHTML =
-    showGhost && Math.round(basis.range) !== Math.round(range)
-      ? `Nur mit Basisdaten: ± ${int(basis.range)} kcal (gestrichelt) → mit deinen Angaben: <strong>± ${int(range)} kcal</strong>`
-      : 'Mit jeder weiteren Angabe wird der Bereich schmaler.';
+  $('#r-narrow').innerHTML = showGhost && Math.round(basis.range) !== Math.round(range) ? R.narrowedHtml(f.int(basis.range), f.int(range)) : esc(R.narrowDefault);
 
-  $('#r-precision-label').textContent = `${r.precisionLabel} · ±${dec1((range / value) * 100)} %`;
+  $('#r-precision-label').textContent = `${r.precisionLabel} · ±${f.dec1((range / value) * 100)} %`;
   $('#r-precision-bar').style.width = `${Math.max(4, r.precisionScore)}%`;
 
   $('#r-stages').innerHTML = r.stages.map((s) => `<li class="stage-chip${s.done ? ' done' : ''}">${esc(s.label)}</li>`).join('');
   $('#r-method').textContent = r.method;
 
-  const t = r.tdee;
-  const tdeeEl = $('#r-tdee');
-  tdeeEl.hidden = !t;
-  if (t) {
-    $('#t-value').textContent = int(t.value);
-    let detail = `± ${int(t.range)} kcal · `;
-    if (t.source === 'pal') detail += `Grundumsatz × PAL ${dec2(t.pal!)}`;
-    else if (t.source === 'combined') detail += `Formel (${int(t.formula!.value)}) und gemessener Verbrauch (${int(t.adaptive!.value)}) kombiniert`;
-    else detail += 'gemessen aus deinem Verlauf';
-    if (t.extraKcal) detail += ` · inkl. +${int(t.extraKcal)} kcal Stillzeit`;
-    if (t.impliedPal) detail += ` · dein tatsächlicher PAL: ${dec2(t.impliedPal)}`;
-    $('#t-detail').textContent = detail;
+  const td = r.tdee;
+  $('#r-tdee').hidden = !td;
+  if (td) {
+    $('#t-value').textContent = f.int(td.value);
+    const parts = [`± ${f.int(td.range)} kcal`];
+    if (td.source === 'pal') parts.push(R.tdeePal(f.dec2(td.pal!)));
+    else if (td.source === 'combined') parts.push(R.tdeeCombined(f.int(td.formula!.value), f.int(td.adaptive!.value)));
+    else parts.push(R.tdeeMeasured);
+    if (td.extraKcal) parts.push(R.tdeeExtra(f.int(td.extraKcal)));
+    if (td.impliedPal) parts.push(R.impliedPal(f.dec2(td.impliedPal)));
+    $('#t-detail').textContent = parts.join(' · ');
   }
 
   // Gewinn-Anzeigen an den optionalen Abschnitten
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-gain]'))) {
-    const s = r.suggestions.find((x) => x.id === el.dataset.gain);
-    el.textContent = s?.expectedRange ? `± ${int(range)} → ± ${int(s.expectedRange)} kcal` : s?.id === 'activity' ? '+ Gesamtumsatz' : '';
+    const id = el.dataset.gain!;
+    const s = r.suggestions.find((x) => x.id === id || (id === 'caliper' && (x.id === 'caliper3' || x.id === 'caliper7')));
+    el.textContent = s?.expectedRange ? `± ${f.int(range)} → ± ${f.int(s.expectedRange)} kcal` : s?.id === 'activity' ? `+ ${R.tdee}` : '';
   }
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-done]'))) {
     el.classList.toggle('on', r.stages.find((s) => s.id === el.dataset.done)?.done ?? false);
   }
 
   $('#mini-result').hidden = false;
-  $('#mini-value').textContent = `${int(value)} kcal`;
-  $('#mini-range').textContent = `± ${int(range)}`;
+  $('#mini-value').textContent = `${f.int(value)} kcal`;
+  $('#mini-range').textContent = `± ${f.int(range)}`;
 }
 
 function renderExplanation(r: CalcResult) {
+  const X = T.explain;
   $('#explain-empty').hidden = true;
   $('#explain-body').hidden = false;
 
@@ -266,33 +334,32 @@ function renderExplanation(r: CalcResult) {
       if (i > 0) {
         const dv = Math.round(s.deltaValue);
         const dr = Math.round(s.deltaRange);
-        deltas = `<div class="deltas"><span class="delta">${dv === 0 ? 'Wert unverändert' : `${signed(dv)} kcal`}</span>` +
-          `<span class="delta ${dr < 0 ? 'good' : dr > 0 ? 'bad' : ''}">${dr === 0 ? 'Spanne unverändert' : `Spanne ${signed(dr)} kcal${dr < 0 ? ' genauer' : ' unsicherer'}`}</span></div>`;
+        deltas =
+          `<div class="deltas"><span class="delta">${dv === 0 ? X.unchanged : `${signed(dv)} kcal`}</span>` +
+          `<span class="delta ${dr < 0 ? 'good' : dr > 0 ? 'bad' : ''}">${dr === 0 ? X.rangeUnchanged : dr < 0 ? X.rangeBetter(signed(dr)) : X.rangeWorse(signed(dr))}</span></div>`;
       }
       const breakdown =
         s.id === 'basis'
           ? `<table class="breakdown"><tbody>${r.mifflinBreakdown
               .map((b) => `<tr><td>${esc(b.label)}</td><td>${signed(b.kcal)} kcal</td></tr>`)
-              .join('')}<tr class="sum"><td>= Mifflin-St Jeor</td><td>${int(r.formulas[0]!.kcal)} kcal</td></tr></tbody></table>`
+              .join('')}<tr class="sum"><td>${X.sumMifflin}</td><td>${f.int(r.formulas[0]!.kcal)} kcal</td></tr></tbody></table>`
           : '';
-      return `<li class="step"><div class="step-head"><span class="step-title">${esc(s.title)}</span><span class="step-val">${int(e.value)} ± ${int(e.range)} kcal</span></div><p>${esc(s.detail)}</p>${breakdown}${deltas}</li>`;
+      return `<li class="step"><div class="step-head"><span class="step-title">${esc(s.title)}</span><span class="step-val">${f.int(e.value)} ± ${f.int(e.range)} kcal</span></div><p>${esc(s.detail)}</p>${breakdown}${deltas}</li>`;
     })
     .join('');
 
-  const sug = r.suggestions;
-  $('#x-suggest').innerHTML = sug.length
-    ? sug
+  $('#x-suggest').innerHTML = r.suggestions.length
+    ? r.suggestions
         .map(
           (s) =>
             `<li><strong>${esc(s.title)}</strong><p>${esc(s.text)}</p>${
-              s.expectedRange ? `<span class="gainline">± ${int(r.bmr.range)} → ca. ± ${int(s.expectedRange)} kcal</span>` : ''
+              s.expectedRange ? `<span class="gainline">${X.gain(f.int(r.bmr.range), f.int(s.expectedRange))}</span>` : ''
             }</li>`,
         )
         .join('')
-    : '<li><p>Mehr Genauigkeit ist mit Formeln kaum möglich. Genauer geht es nur noch mit einer Messung per indirekter Kalorimetrie (z. B. in der Sportmedizin).</p></li>';
+    : `<li><p>${esc(X.noMore)}</p></li>`;
 
-  const hintsCard = $('#x-hints-card');
-  hintsCard.hidden = r.hints.length === 0;
+  $('#x-hints-card').hidden = r.hints.length === 0;
   $('#x-hints').innerHTML = r.hints.map((h) => `<p class="note${h.level === 'warn' ? ' warn' : ''}">${esc(h.text)}</p>`).join('');
 
   const bc = r.bodyComposition;
@@ -300,16 +367,16 @@ function renderExplanation(r: CalcResult) {
   if (bc) {
     const ffmShare = (bc.ffmKg / (bc.ffmKg + bc.fatKg)) * 100;
     $('#x-body').innerHTML =
-      `<div class="comp-bar" role="img" aria-label="Fettfreie Masse ${dec1(bc.ffmKg)} kg, Fettmasse ${dec1(bc.fatKg)} kg"><span class="ffm" style="width:${ffmShare}%"></span><span class="fat" style="width:${100 - ffmShare}%"></span></div>` +
-      `<div class="comp-legend"><span><strong>${dec1(bc.ffmKg)} kg</strong> fettfreie Masse</span><span><strong>${dec1(bc.fatKg)} kg</strong> Fett (${dec1(bc.percent)} % ± ${dec1(bc.range)})</span></div>` +
-      `<ul class="comp-list">${bc.measurements.map((m) => `<li>${esc(m.label)}: ${dec1(m.percent)} % (± ${dec1(m.range)} %-Pkt.)</li>`).join('')}</ul>`;
+      `<div class="comp-bar" role="img" aria-label="${X.ffm} ${f.dec1(bc.ffmKg)} kg, ${X.fat} ${f.dec1(bc.fatKg)} kg"><span class="ffm" style="width:${ffmShare}%"></span><span class="fat" style="width:${100 - ffmShare}%"></span></div>` +
+      `<div class="comp-legend"><span><strong>${f.dec1(bc.ffmKg)} kg</strong> ${X.ffm}</span><span><strong>${f.dec1(bc.fatKg)} kg</strong> ${X.fat} (${f.dec1(bc.percent)} % ± ${f.dec1(bc.range)})</span></div>` +
+      `<ul class="comp-list">${bc.measurements.map((m) => `<li>${esc(m.label)}: ${f.dec1(m.percent)} % (± ${f.dec1(m.range)} ${X.pp})</li>`).join('')}</ul>`;
   }
 
   $('#x-formulas').innerHTML = r.formulas
     .map(
-      (f) =>
-        `<tr><td><strong>${esc(f.name)}</strong><span class="fnote">${esc(f.note)}</span></td><td class="r num">${int(f.kcal)} kcal</td>` +
-        `<td><span class="wbar"><span class="track"><span class="fill" style="width:${f.weight * 100}%"></span></span><small>${Math.round(f.weight * 100)} %</small></span></td></tr>`,
+      (fm) =>
+        `<tr><td><strong>${esc(fm.name)}</strong><span class="fnote">${esc(fm.note)}</span></td><td class="r num">${f.int(fm.kcal)} kcal</td>` +
+        `<td><span class="wbar"><span class="track"><span class="fill" style="width:${fm.weight * 100}%"></span></span><small>${Math.round(fm.weight * 100)} %</small></span></td></tr>`,
     )
     .join('');
 }
@@ -326,13 +393,11 @@ function saveLog() {
   update();
 }
 
-function upsert(entry: LogEntry, merge: boolean) {
+function upsert(entry: LogEntry) {
   const i = log.findIndex((e) => e.date === entry.date);
   if (i >= 0) {
     const prev = log[i]!;
-    log[i] = merge
-      ? { date: entry.date, weightKg: entry.weightKg ?? prev.weightKg, kcal: entry.kcal ?? prev.kcal }
-      : entry;
+    log[i] = { date: entry.date, weightKg: entry.weightKg ?? prev.weightKg, kcal: entry.kcal ?? prev.kcal };
   } else {
     log.push(entry);
   }
@@ -340,41 +405,53 @@ function upsert(entry: LogEntry, merge: boolean) {
 }
 
 function renderLogTable() {
-  $('#log-count').textContent = `${log.length} ${log.length === 1 ? 'Eintrag' : 'Einträge'} anzeigen`;
+  const TR = T.tracker;
+  $('#log-count').textContent = TR.entries(log.length);
   $('#log-rows').innerHTML = [...log]
     .reverse()
     .map(
       (e) =>
-        `<tr><td class="num">${formatDate(e.date, true)}</td><td class="num">${typeof e.weightKg === 'number' ? `${dec1(e.weightKg)} kg` : '–'}</td>` +
-        `<td class="num">${typeof e.kcal === 'number' ? int(e.kcal) : '–'}</td><td><button class="row-del" type="button" data-del="${e.date}" aria-label="Eintrag vom ${formatDate(e.date, true)} löschen">×</button></td></tr>`,
+        `<tr><td class="num">${fd(e.date, true)}</td><td class="num">${typeof e.weightKg === 'number' ? `${f.dec1(e.weightKg)} kg` : '–'}</td>` +
+        `<td class="num">${typeof e.kcal === 'number' ? f.int(e.kcal) : '–'}</td><td><button class="row-del" type="button" data-del="${e.date}" aria-label="${esc(TR.deleteAria(fd(e.date, true)))}">×</button></td></tr>`,
     )
     .join('');
 }
 
 function renderTrackerStatus(adaptive: AdaptiveResult | undefined, r: CalcResult | undefined) {
-  $('#log-chart').innerHTML = renderChart(log, adaptive);
+  const TR = T.tracker;
+  $('#log-chart').innerHTML = renderChart(log, adaptive, locale, TR);
   const status = $('#adaptive-status');
   const teaser = $('#adaptive-teaser');
   if (!adaptive) {
     status.innerHTML = '';
+    teaser.textContent = T.form.adaptive.teaser;
     return;
   }
   if (adaptive.status === 'insufficient') {
-    const progress = Math.min(1, Math.min(adaptive.days / 14, adaptive.weightDays / 7, adaptive.kcalDays / 10));
+    const progress = Math.min(1, adaptive.days / 14, adaptive.weightDays / 7, adaptive.kcalDays / 10);
     status.innerHTML =
-      `<strong>Noch nicht genug Daten</strong><div class="progress"><span style="width:${progress * 100}%"></span></div>` +
+      `<strong>${TR.notEnough}</strong><div class="progress"><span style="width:${progress * 100}%"></span></div>` +
       `<ul>${adaptive.reasons.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
-    teaser.textContent = `Dein Tagebuch: ${adaptive.days} von mind. 14 Tagen. Zum Tagebuch ↓`;
+    teaser.textContent = TR.teaserProgress(adaptive.days);
     return;
   }
   const a = adaptive;
-  let pal = '';
-  if (r?.tdee?.impliedPal) pal = `<p>Bei deinem Grundumsatz von ${int(r.bmr.value)} kcal entspricht das einem Aktivitätsfaktor (PAL) von <strong>${dec2(r.tdee.impliedPal)}</strong>.</p>`;
+  const pal = r?.tdee?.impliedPal ? `<p>${TR.palHtml(f.int(r.bmr.value), f.dec2(r.tdee.impliedPal))}</p>` : '';
   status.innerHTML =
-    `<div class="measured"><span class="small muted">Gemessener Gesamtumsatz</span><div class="val">${int(a.tdee)} ± ${int(a.range)} kcal</div>` +
-    `<p>Ø gegessen ${int(a.avgIntake)} kcal · Gewichtstrend ${signed(a.slopeKgPerWeek, dec2)} kg/Woche · ${a.days} Tage (${formatDate(a.fromDate)}–${formatDate(a.toDate)}), ${a.weightDays} Wägungen, ${a.kcalDays} Tage mit Kalorien</p>${pal}</div>` +
+    `<div class="measured"><span class="small muted">${TR.measured}</span><div class="val">${f.int(a.tdee)} ± ${f.int(a.range)} kcal</div>` +
+    `<p>${esc(
+      TR.measuredDetail({
+        intake: f.int(a.avgIntake),
+        slope: signed(a.slopeKgPerWeek, f.dec2),
+        days: a.days,
+        from: fd(a.fromDate),
+        to: fd(a.toDate),
+        weights: a.weightDays,
+        kcalDays: a.kcalDays,
+      }),
+    )}</p>${pal}</div>` +
     (a.warnings.length ? `<ul>${a.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : '');
-  teaser.textContent = `Gemessener Verbrauch: ${int(a.tdee)} ± ${int(a.range)} kcal/Tag. Zum Tagebuch ↓`;
+  teaser.textContent = TR.teaserMeasured(`${f.int(a.tdee)} ± ${f.int(a.range)}`);
 }
 
 function demoLog(): LogEntry[] {
@@ -394,7 +471,7 @@ function demoLog(): LogEntry[] {
 }
 
 function toCsv(): string {
-  return ['datum;gewicht_kg;kcal', ...log.map((e) => `${e.date};${e.weightKg != null ? String(e.weightKg).replace('.', ',') : ''};${e.kcal ?? ''}`)].join('\n');
+  return [T.tracker.csvHeader, ...log.map((e) => `${e.date};${e.weightKg != null ? String(e.weightKg).replace('.', ',') : ''};${e.kcal ?? ''}`)].join('\n');
 }
 
 function parseCsv(text: string): LogEntry[] {
@@ -406,7 +483,7 @@ function parseCsv(text: string): LogEntry[] {
     let date: string | undefined;
     let m: RegExpMatchArray | null;
     if ((m = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})$/))) date = `${m[1]}-${m[2]}-${m[3]}`;
-    else if ((m = rawDate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) date = `${m[3]}-${m[2]!.padStart(2, '0')}-${m[1]!.padStart(2, '0')}`;
+    else if ((m = rawDate.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/))) date = `${m[3]}-${m[2]!.padStart(2, '0')}-${m[1]!.padStart(2, '0')}`;
     if (!date) continue;
     const w = parseNum(cells[1]);
     const k = parseNum(cells[2]);
@@ -427,6 +504,7 @@ function download(name: string, content: string) {
 // ─────────────────────────────────────────────────────────────── Verdrahtung
 
 function init() {
+  const TR = T.tracker;
   const remember = store.get<boolean>(REMEMBER_KEY);
   const saved = store.get<FormState>(FORM_KEY);
   if (saved && remember !== false) restore(saved);
@@ -434,10 +512,10 @@ function init() {
 
   form.addEventListener('input', update);
   form.addEventListener('change', (e) => {
-    const t = e.target as HTMLInputElement;
-    if (t.name === 'remember') {
-      store.set(REMEMBER_KEY, t.checked);
-      if (!t.checked) store.remove(FORM_KEY);
+    const target = e.target as HTMLInputElement;
+    if (target.name === 'remember') {
+      store.set(REMEMBER_KEY, target.checked);
+      if (!target.checked) store.remove(FORM_KEY);
     }
     update();
   });
@@ -452,32 +530,36 @@ function init() {
     update();
   });
 
-  // Offene Abschnitte, wenn dort schon Werte stehen
+  // Abschnitte öffnen, in denen schon Werte stehen
   for (const d of Array.from(form.querySelectorAll<HTMLDetailsElement>('details.group'))) {
-    const hasValue = Array.from(d.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input, select')).some((el) =>
-      el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio') ? el.checked && el.value !== '' : el.value !== '' && el.tagName === 'INPUT',
+    const hasValue = Array.from(d.querySelectorAll<HTMLInputElement>('input')).some((el) =>
+      el.type === 'checkbox' || el.type === 'radio' ? el.checked && el.value !== '' && el.value !== 'on' : el.value !== '',
     );
-    if (hasValue) d.open = true;
+    const hasCheck = Array.from(d.querySelectorAll<HTMLInputElement>('input[type=checkbox]')).some((el) => el.checked);
+    if (hasValue || hasCheck) d.open = true;
   }
 
-  (logForm.elements.namedItem('date') as HTMLInputElement).value = todayIso();
-  (logForm.elements.namedItem('date') as HTMLInputElement).max = todayIso();
+  const dateInput = logForm.elements.namedItem('date') as HTMLInputElement;
+  const weightInput = logForm.elements.namedItem('weight') as HTMLInputElement;
+  const kcalInput = logForm.elements.namedItem('kcal') as HTMLInputElement;
+  dateInput.value = todayIso();
+  dateInput.max = todayIso();
   logForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const err = $('#log-error');
-    const date = (logForm.elements.namedItem('date') as HTMLInputElement).value;
-    const w = parseNum((logForm.elements.namedItem('weight') as HTMLInputElement).value);
-    const k = parseNum((logForm.elements.namedItem('kcal') as HTMLInputElement).value);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return void (err.textContent = 'Bitte ein Datum wählen.');
-    if (w === undefined && k === undefined) return void (err.textContent = 'Bitte Gewicht und/oder Kalorien eintragen.');
-    if (w !== undefined && !(w >= 25 && w <= 350)) return void (err.textContent = 'Gewicht bitte zwischen 25 und 350 kg.');
-    if (k !== undefined && !(k >= 300 && k <= 10000)) return void (err.textContent = 'Kalorien bitte zwischen 300 und 10.000.');
+    const date = dateInput.value;
+    const w = parseNum(weightInput.value);
+    const k = parseNum(kcalInput.value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return void (err.textContent = TR.errDate);
+    if (w === undefined && k === undefined) return void (err.textContent = TR.errEmpty);
+    if (w !== undefined && !(w >= 25 && w <= 350)) return void (err.textContent = TR.errWeight);
+    if (k !== undefined && !(k >= 300 && k <= 10000)) return void (err.textContent = TR.errKcal);
     err.textContent = '';
-    upsert({ date, weightKg: w ?? null, kcal: k !== undefined ? Math.round(k) : null }, true);
-    (logForm.elements.namedItem('weight') as HTMLInputElement).value = '';
-    (logForm.elements.namedItem('kcal') as HTMLInputElement).value = '';
-    // Nächster Tag vorschlagen, wenn ein vergangener Tag nachgetragen wurde
-    if (date < todayIso()) (logForm.elements.namedItem('date') as HTMLInputElement).value = isoFromDay(dayNumber(date) + 1);
+    upsert({ date, weightKg: w ?? null, kcal: k !== undefined ? Math.round(k) : null });
+    weightInput.value = '';
+    kcalInput.value = '';
+    // Nächsten Tag vorschlagen, wenn ein vergangener Tag nachgetragen wurde
+    if (date < todayIso()) dateInput.value = isoFromDay(dayNumber(date) + 1);
     saveLog();
   });
 
@@ -489,24 +571,24 @@ function init() {
   });
 
   $('#log-demo').addEventListener('click', () => {
-    if (log.length && !confirm('Vorhandenen Verlauf durch Beispieldaten ersetzen?')) return;
+    if (log.length && !confirm(TR.confirmDemo)) return;
     log = sortLog(demoLog());
     saveLog();
   });
-  $('#log-export').addEventListener('click', () => download(`grundumsatz-verlauf-${todayIso()}.csv`, toCsv()));
+  $('#log-export').addEventListener('click', () => download(`bmr-log-${todayIso()}.csv`, toCsv()));
   $('#log-import').addEventListener('change', async (e) => {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
     const entries = parseCsv(await file.text());
     input.value = '';
-    if (!entries.length) return void ($('#log-error').textContent = 'In der Datei wurden keine gültigen Zeilen gefunden (Format: Datum;Gewicht;kcal).');
-    for (const en of entries) upsert(en, true);
+    if (!entries.length) return void ($('#log-error').textContent = TR.errImport);
+    for (const en of entries) upsert(en);
     $('#log-error').textContent = '';
     saveLog();
   });
   $('#log-clear').addEventListener('click', () => {
-    if (!log.length || !confirm('Gesamten Verlauf auf diesem Gerät löschen?')) return;
+    if (!log.length || !confirm(TR.confirmClear)) return;
     log = [];
     store.remove(LOG_KEY);
     saveLog();

@@ -1,46 +1,51 @@
 ---
+import type { Locale } from '@grundumsatz/core';
+import { UI_TEXT, localePath } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale].explain;
 ---
 
 <section id="erklaerung" class="wrap explain" aria-labelledby="explain-h">
-  <h2 id="explain-h">So kommt dein Ergebnis zustande</h2>
-  <p class="muted" id="explain-empty">Sobald du die Basisdaten eingibst, erscheint hier Schritt für Schritt, wie gerechnet wurde.</p>
+  <h2 id="explain-h">{t.h2}</h2>
+  <p class="muted" id="explain-empty">{t.empty}</p>
 
   <div id="explain-body" hidden>
     <div class="explain-grid">
       <div class="card pad">
-        <h3>Rechenweg</h3>
+        <h3>{t.steps}</h3>
         <ol class="steps" id="x-steps"></ol>
       </div>
 
       <div class="side">
         <div class="card pad" id="x-suggest-card">
-          <h3>Noch genauer werden</h3>
+          <h3>{t.suggest}</h3>
           <ul class="suggest" id="x-suggest"></ul>
         </div>
         <div class="card pad" id="x-hints-card" hidden>
-          <h3>Hinweise</h3>
+          <h3>{t.hints}</h3>
           <div class="hints" id="x-hints"></div>
         </div>
         <div class="card pad" id="x-body-card" hidden>
-          <h3>Körperzusammensetzung</h3>
+          <h3>{t.body}</h3>
           <div id="x-body"></div>
         </div>
       </div>
     </div>
 
     <div class="card pad formulas">
-      <h3>Alle Formeln im Vergleich</h3>
-      <p class="small muted">
-        Verschiedene Formeln liefern für dieselbe Person unterschiedliche Werte. Wir nutzen nicht einfach eine, sondern gewichten die
-        passenden nach ihrer Genauigkeit.
-      </p>
+      <h3>{t.formulas}</h3>
+      <p class="small muted">{t.formulasIntro}</p>
       <div class="table-scroll">
         <table>
-          <thead><tr><th>Formel</th><th class="r">Ergebnis</th><th>Anteil am Ergebnis</th></tr></thead>
+          <thead><tr><th>{t.thFormula}</th><th class="r">{t.thResult}</th><th>{t.thShare}</th></tr></thead>
           <tbody id="x-formulas"></tbody>
         </table>
       </div>
-      <p class="small"><a href="/methodik/">Alle Formeln, Annahmen und Quellen →</a></p>
+      <p class="small"><a href={localePath(locale, 'methodik/')}>{t.allFormulas}</a></p>
     </div>
   </div>
 </section>

@@ -1,0 +1,105 @@
+---
+import { BODY_FAT_RANGES, formatters, messages, palLevels, type AnyBodyFatSource, type Locale } from '@grundumsatz/core';
+import Base from '../layouts/Base.astro';
+import { UI_TEXT } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale].methodik;
+const core = messages(locale);
+const fmt = formatters(locale);
+
+const order: AnyBodyFatSource[] = ['dexa', 'bodpod', 'jp7', 'jp3', 'dw4', 'caliper', 'navy', 'bia8', 'rfm', 'bia', 'ymca', 'visual'];
+const bodyfatTable = `<div class="table-scroll"><table><thead><tr><th>${t.thMethod}</th><th>${t.thUncertainty}</th></tr></thead><tbody>${order
+  .map((id) => `<tr><td>${core.sources[id]}</td><td>± ${fmt.num(BODY_FAT_RANGES[id])} ${t.pp}</td></tr>`)
+  .join('')}</tbody></table></div>`;
+const palTable = `<div class="table-scroll"><table><thead><tr><th>${t.thActivity}</th><th>PAL</th></tr></thead><tbody>${palLevels(locale)
+  .map((l) => `<tr><td>${l.label}<br /><span class="muted small">${l.example}</span></td><td>${fmt.num(l.pal)}</td></tr>`)
+  .join('')}</tbody></table></div>`;
+const render = (html: string) => html.replace('{{bodyfatTable}}', bodyfatTable).replace('{{palTable}}', palTable);
+
+const sources = [
+  'Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO. A new predictive equation for resting energy expenditure in healthy individuals. <em>Am J Clin Nutr</em> 1990;51:241–247.',
+  'Frankenfield D, Roth-Yousey L, Compher C. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. <em>J Am Diet Assoc</em> 2005;105:775–789.',
+  'Roza AM, Shizgal HM. The Harris Benedict equation reevaluated: resting energy requirements and the body cell mass. <em>Am J Clin Nutr</em> 1984;40:168–182.',
+  'Cunningham JJ. A reanalysis of the factors influencing basal metabolic rate in normal adults. <em>Am J Clin Nutr</em> 1980;33:2372–2374.',
+  'McArdle WD, Katch FI, Katch VL. <em>Exercise Physiology: Nutrition, Energy, and Human Performance.</em> Lippincott Williams &amp; Wilkins.',
+  'Hodgdon JA, Beckett MB. Prediction of percent body fat for U.S. Navy men and women from body circumferences and height. Naval Health Research Center, Reports 84-11 and 84-29, 1984.',
+  'Woolcott OO, Bergman RN. Relative fat mass (RFM) as a new estimator of whole-body fat percentage. <em>Sci Rep</em> 2018;8:10980.',
+  'Jackson AS, Pollock ML. Generalized equations for predicting body density of men. <em>Br J Nutr</em> 1978;40:497–504.',
+  'Jackson AS, Pollock ML, Ward A. Generalized equations for predicting body density of women. <em>Med Sci Sports Exerc</em> 1980;12:175–181.',
+  'Durnin JVGA, Womersley J. Body fat assessed from total body density and its estimation from skinfold thickness. <em>Br J Nutr</em> 1974;32:77–97.',
+  'Siri WE. Body composition from fluid spaces and density. In: Techniques for Measuring Body Composition. National Academy of Sciences, 1961.',
+  'Weir JB de V. New methods for calculating metabolic rate with special reference to protein metabolism. <em>J Physiol</em> 1949;109:1–9.',
+  'Deurenberg P, Weststrate JA, Seidell JC. Body mass index as a measure of body fatness. <em>Br J Nutr</em> 1991;65:105–114.',
+  'Hall KD et al. Quantification of the effect of energy imbalance on bodyweight. <em>Lancet</em> 2011;378:826–837.',
+  'Deutsche Gesellschaft für Ernährung (DGE). Referenzwerte für die Energiezufuhr.',
+];
+---
+
+<Base locale={locale} page="methodik/" title={t.title} description={t.description}>
+  <article class="wrap prose page">
+    <h1>{t.h1}</h1>
+    <p class="lead">{t.lead}</p>
+
+    <nav class="toc card" aria-label={t.toc}>
+      <ol>
+        {t.sections.map((s) => <li><a href={`#${s.id}`}>{s.h2}</a></li>)}
+        <li><a href="#quellen">{t.sourcesTitle}</a></li>
+      </ol>
+    </nav>
+
+    {
+      t.sections.map((s) => (
+        <section>
+          <h2 id={s.id}>{s.h2}</h2>
+          <Fragment set:html={render(s.html)} />
+        </section>
+      ))
+    }
+
+    <h2 id="quellen">{t.sourcesTitle}</h2>
+    <ul class="refs">{sources.map((s) => <li set:html={s} />)}</ul>
+
+    <p class="note warn">{t.disclaimer}</p>
+  </article>
+</Base>
+
+<style>
+  .page {
+    padding-top: 36px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    margin-bottom: 10px;
+  }
+  .lead {
+    font-size: 1.08rem;
+    color: var(--muted);
+  }
+  .toc {
+    padding: 14px 22px;
+    margin: 24px 0;
+    box-shadow: none;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  @media (max-width: 560px) {
+    .toc ol {
+      columns: 1;
+    }
+  }
+  .refs li {
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+  }
+  .note {
+    margin-top: 32px;
+  }
+</style>

@@ -1,8 +1,13 @@
 import { defineConfig } from 'astro/config';
 
-// `site` bei Veröffentlichung auf die echte Domain setzen (für Canonical-URLs und Sitemap).
+// SITE_URL und BASE_PATH werden beim Deployment gesetzt (siehe .github/workflows/deploy.yml).
+// Mit eigener Domain: SITE_URL=https://deine-domain.de, BASE_PATH=/
+const site = process.env.SITE_URL ?? 'https://grundumsatz-rechner.example';
+const base = process.env.BASE_PATH ?? '/';
+
 export default defineConfig({
-  site: 'https://grundumsatz-rechner.example',
+  site,
+  base,
   trailingSlash: 'ignore',
   build: { format: 'directory' },
 });
