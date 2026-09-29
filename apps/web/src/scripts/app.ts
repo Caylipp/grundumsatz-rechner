@@ -493,6 +493,12 @@ function parseCsv(text: string): LogEntry[] {
 }
 
 function download(name: string, content: string) {
+  // In der iOS-App (Capacitor) gibt es keine Link-Downloads, dort übernimmt das Teilen-Menü (siehe AppShell.astro)
+  const share = (window as unknown as { __shareFile?: (n: string, c: string) => Promise<void> }).__shareFile;
+  if (share) {
+    void share(name, content).catch(() => {});
+    return;
+  }
   const url = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;

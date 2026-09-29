@@ -12,6 +12,8 @@
     "preview": "npm run preview -w @grundumsatz/web",
     "test": "npm test -w @grundumsatz/core",
     "deploy": "npm test && SITE_URL=${SITE_URL:-https://grundumsatz-rechner.grundumsatz-web.workers.dev} BASE_PATH=/ npm run build && cd apps/web && npx wrangler deploy",
-    "typecheck": "npm run typecheck -w @grundumsatz/core"
+    "typecheck": "npm run typecheck -w @grundumsatz/core",
+    "ios:sim": "npm run ios:sim -w @grundumsatz/mobile",
+    "ios:ipa": "npm run ios:ipa -w @grundumsatz/mobile"
   }
 }

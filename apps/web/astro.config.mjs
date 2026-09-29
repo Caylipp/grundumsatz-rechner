@@ -10,4 +10,6 @@ export default defineConfig({
   base,
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  // App-Build (apps/mobile) landet in einem eigenen Ordner und stört den Web-Build nicht.
+  outDir: process.env.APP_BUILD ? './dist-app' : './dist',
 });

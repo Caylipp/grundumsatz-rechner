@@ -1,0 +1,46 @@
+---
+// Wird nur im App-Build (PUBLIC_APP=1) eingebunden, siehe Base.astro. Auf der Website ist dieser Code nicht enthalten.
+---
+
+<!-- Sprache: gemerkte Wahl, sonst Gerätesprache. Läuft vor dem ersten Zeichnen, damit die Seite nicht springt. -->
+<script is:inline>
+  (function () {
+    var KEY = 'grundumsatz:lang';
+    var saved = null;
+    try {
+      saved = localStorage.getItem(KEY);
+    } catch (e) {}
+    var path = location.pathname;
+    var isRoot = path === '/' || path === '/index.html';
+    if (isRoot && document.documentElement.lang === 'de') {
+      var pref = saved || (navigator.language || 'de').slice(0, 2).toLowerCase();
+      if (pref === 'en' || pref === 'es' || pref === 'vi') {
+        location.replace('/' + pref + '/index.html');
+        return;
+      }
+    }
+    // Wahl im Sprachumschalter merken (auch "DE"), damit sie beim nächsten Start gilt
+    document.addEventListener('click', function (ev) {
+      var a = ev.target && ev.target.closest && ev.target.closest('.langs a');
+      if (a && a.getAttribute('hreflang')) {
+        try {
+          localStorage.setItem(KEY, a.getAttribute('hreflang'));
+        } catch (e) {}
+      }
+    });
+  })();
+</script>
+
+<script>
+  import { Capacitor } from '@capacitor/core';
+  import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+  import { Share } from '@capacitor/share';
+
+  if (Capacitor.isNativePlatform()) {
+    // In der App funktioniert kein Download per Link: Datei zwischenspeichern und das iOS-Teilen-Menü öffnen.
+    (window as unknown as { __shareFile?: (name: string, content: string) => Promise<void> }).__shareFile = async (name, content) => {
+      const file = await Filesystem.writeFile({ path: name, data: content, directory: Directory.Cache, encoding: Encoding.UTF8 });
+      await Share.share({ title: name, url: file.uri });
+    };
+  }
+</script>

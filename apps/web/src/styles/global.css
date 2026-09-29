@@ -78,7 +78,23 @@ h3 {
 .wrap {
   max-width: 1140px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+}
+
+/* App: Kopfzeile unter der Statusleiste, kein Text-Zoom, kein Antippen-Blinken */
+html.app {
+  -webkit-tap-highlight-color: transparent;
+}
+html.app body {
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior-y: none;
+}
+html.app input,
+html.app select,
+html.app textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .muted {
