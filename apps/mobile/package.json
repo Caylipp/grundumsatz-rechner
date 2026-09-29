@@ -1,0 +1,23 @@
+{
+  "name": "@grundumsatz/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "iOS-App (Capacitor-Hülle um die statische Website in apps/web)",
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/share": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3"
+  },
+  "scripts": {
+    "sync": "sh scripts/sync.sh",
+    "ios:sim": "sh scripts/run-simulator.sh",
+    "ios:ipa": "sh scripts/build-ipa.sh",
+    "ios:open": "npx cap open ios"
+  }
+}

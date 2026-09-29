@@ -1,0 +1,19 @@
+{
+  "appId": "com.philipphoang.grundumsatz",
+  "appName": "Grundumsatz",
+  "webDir": "../web/dist-app",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f6f4ef",
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 400,
+      "launchAutoHide": true,
+      "backgroundColor": "#0f7b5f",
+      "showSpinner": false
+    },
+    "StatusBar": { "style": "DEFAULT" }
+  }
+}

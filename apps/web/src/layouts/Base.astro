@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
 import type { Locale } from '@grundumsatz/core';
-import { LOCALE_ORDER, UI_TEXT, asset, localePath } from '../i18n';
+import { IS_APP, LOCALE_ORDER, UI_TEXT, asset, localePath } from '../i18n';
+import AppShell from '../components/AppShell.astro';
 
 interface Props {
   locale: Locale;
@@ -21,14 +22,14 @@ const nav = [
   { href: localePath(locale, ''), label: t.nav.calculator },
   { href: localePath(locale, 'methodik/'), label: t.nav.method },
 ];
-const norm = (p: string) => p.replace(/\/$/, '');
+const norm = (p: string) => p.replace(/index\.html$/, '').replace(/\/$/, '');
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} class={IS_APP ? 'app' : undefined}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content={IS_APP ? 'width=device-width, initial-scale=1, viewport-fit=cover' : 'width=device-width, initial-scale=1'} />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -44,6 +45,7 @@ const norm = (p: string) => p.replace(/\/$/, '');
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    {IS_APP && <AppShell />}
     {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
   </head>
   <body data-base={asset('')}>
@@ -108,6 +110,7 @@ const norm = (p: string) => p.replace(/\/$/, '');
   .site-header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
+    padding-top: env(safe-area-inset-top);
   }
   .bar {
     display: flex;
@@ -170,7 +173,7 @@ const norm = (p: string) => p.replace(/\/$/, '');
   }
   .site-footer {
     margin-top: 64px;
-    padding: 32px 0 96px;
+    padding: 32px 0 calc(96px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);
     background: var(--surface);
   }

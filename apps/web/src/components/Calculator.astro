@@ -857,7 +857,7 @@ const sites: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'supraili
       position: fixed;
       left: 12px;
       right: 12px;
-      bottom: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
       z-index: 10;
       text-align: center;
       background: var(--surface);

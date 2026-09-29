@@ -28,7 +28,8 @@ Sprachen: Deutsch (`/`), Englisch (`/en/`), Spanisch (`/es/`), Vietnamesisch (`/
 packages/core   Rechenlogik als geteiltes TS-Paket (@grundumsatz/core), inkl. Texte in 4 Sprachen, + Vitest-Tests
 apps/web        Astro-Website (statisch), nutzt @grundumsatz/core
   src/i18n      Oberflächentexte (de, en, es, vi)
-.github         GitHub-Actions-Workflow für GitHub Pages
+apps/mobile     iOS-App: Capacitor-Hülle um die Website (ios/ = Xcode-Projekt)
+.github         GitHub-Actions-Workflow (Tests, Build, optional Deploy)
 ```
 
 ## Befehle
@@ -62,6 +63,21 @@ npm run deploy     # Tests → Build → Upload zu Cloudflare
 
 **Achtung:** `wrangler` nicht im Repo-Wurzelordner ohne Konfiguration starten – die automatische Einrichtung baut sonst die Astro-Konfiguration auf einen Server-Adapter um.
 
+## iOS-App
+
+Die App ist dieselbe Website in einer nativen Hülle (Capacitor, Swift Package Manager – kein CocoaPods nötig). Sie läuft komplett offline, speichert lokal und wählt beim ersten Start die Gerätesprache (Deutsch, Englisch, Spanisch, Vietnamesisch; sonst Deutsch). Die Wahl im Sprachumschalter wird gemerkt. Der CSV-Export öffnet das iOS-Teilen-Menü.
+
+```bash
+npm run ios:sim    # baut für den Simulator ("iPhone 17e", anderes Gerät: DEVICE="iPhone 18 Pro" npm run ios:sim)
+npm run ios:ipa    # baut apps/mobile/dist/Grundumsatz.ipa (unsigniert, für LiveContainer)
+```
+
+**Aufs iPhone über LiveContainer:** `apps/mobile/dist/Grundumsatz.ipa` über **iCloud Drive** aufs iPhone bringen (nicht per AirDrop – iOS versucht sonst, die unsignierte IPA selbst zu installieren) → LiveContainer → „+“ → IPA wählen. Updates: neu bauen und genauso importieren.
+
+**Aufbau des App-Builds:** `apps/mobile/scripts/sync.sh` baut die Website mit `PUBLIC_APP=1` in `apps/web/dist-app`. Dort enden Links auf `index.html` (Capacitor liefert Pfade ohne Dateiendung sonst immer als Startseite aus) und `AppShell.astro` ist eingebunden (Sprachwahl, Teilen-Menü, Safe-Area). Auf der Website steckt davon nichts. Danach kopiert `cap sync` die Dateien ins Xcode-Projekt.
+
+**App Store / TestFlight (später):** Apple-Developer-Konto (99 $/Jahr) in Xcode hinterlegen (`npm run ios:open -w @grundumsatz/mobile`, dann Signing & Capabilities), Version in Xcode erhöhen, Archive erstellen. Bundle-ID: `com.philipphoang.grundumsatz`, Export-Compliance ist gesetzt. Apple lehnt reine Web-Hüllen oft ab (Richtlinie 4.2) – dann eine native Funktion ergänzen, z. B. tägliche Wiege-Erinnerung (Local Notifications) oder Apple-Health-Import.
+
 ## Vor der öffentlichen Bewerbung
 
 - Impressum und Datenschutz (`apps/web/src/pages/`) mit deinen Angaben ausfüllen – derzeit Platzhalter
@@ -69,5 +85,5 @@ npm run deploy     # Tests → Build → Upload zu Cloudflare
 
 ## Nächste Schritte
 
-- Native App: `apps/web/dist` mit Capacitor verpacken (mit App-Funktion wie Apple-Health-Import, sonst lehnt Apple reine Web-Hüllen oft ab)
+- Native Zusatzfunktion für den App Store (Wiege-Erinnerung, Apple-Health-Import, Widget)
 - Monetarisierung (Werbung/Affiliate) laut Konzept – dann Datenschutz und Consent anpassen
