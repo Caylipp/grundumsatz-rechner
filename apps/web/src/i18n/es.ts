@@ -218,6 +218,62 @@ export const es: UI = {
     csvHeader: 'fecha;peso_kg;kcal',
     chartAria: 'Evolución del peso',
   },
+  goal: {
+    h2: 'Peso objetivo: calorías y calendario',
+    leadHtml:
+      '¿Cuánto puedes comer para llegar a un peso objetivo y cuánto tardarás? El plan parte de tu <strong>gasto total con su incertidumbre</strong> y tiene en cuenta que el gasto baja con el peso. Por eso el avance se ralentiza y la duración se da como intervalo.',
+    needData: 'Indica arriba tus datos básicos y tu actividad. Entonces calculamos aquí la ingesta y el calendario.',
+    target: 'Peso objetivo (kg)',
+    pace: {
+      label: 'Ritmo',
+      gentle: 'Suave',
+      moderate: 'Moderado',
+      fast: 'Rápido',
+      weeks: 'En un plazo determinado',
+      option: (label, pct) => `${label} (${pct} % por semana)`,
+      weeksLabel: 'En este número de semanas',
+      weeksUnit: 'semanas',
+    },
+    intake: 'Ingesta objetivo',
+    perDay: 'kcal al día',
+    maintainDetail: (t) => `El mantenimiento requiere ${t} kcal al día. Tu objetivo está cerca de tu peso actual.`,
+    deficit: (k, r, t) => `Déficit de ${k} ± ${r} kcal respecto a tu gasto total de ${t} kcal`,
+    surplus: (k, r, t) => `Superávit de ${k} ± ${r} kcal respecto a tu gasto total de ${t} kcal`,
+    maintain: 'Mantener el peso',
+    rate: (rate, range, pct) => `Al principio ${rate} ± ${range} kg por semana (${pct} % del peso corporal)`,
+    duration: 'Duración',
+    durationValue: (w) => `unas ${w} semanas`,
+    durationRange: (a, b) => `Intervalo (aprox. 80 %): de ${a} a ${b} semanas`,
+    durationOpen: (a) => `Como pronto en ${a} semanas; en el caso desfavorable esta ingesta no alcanza el objetivo`,
+    durationNone: 'No se alcanza con esta ingesta',
+    date: (d) => `previsto hacia el ${d}`,
+    bmi: (a, b) => `IMC ${a} → ${b}`,
+    chartTitle: 'Evolución prevista',
+    chartAria: 'Evolución prevista del peso hasta el objetivo',
+    legendExpected: 'Previsto',
+    legendBand: 'Intervalo (aprox. 80 %)',
+    legendTarget: 'Peso objetivo',
+    week: 'Semana',
+    warnTitle: 'Notas sobre el plan',
+    modelTitle: 'Cómo se calcula',
+    modelHtml:
+      '<p>La ingesta se mantiene constante. El gasto baja (o sube) 10 kcal × factor de actividad por cada kg de cambio de peso, que es la pendiente del peso en la fórmula de Mifflin-St Jeor. Con 7.700 kcal por kg resulta una aproximación a un peso de equilibrio en el que ingesta y gasto coinciden (Hall et al. 2011). Un simple «déficit × días ÷ 7.700» sería demasiado optimista.</p><p>El intervalo procede de la incertidumbre de tu gasto total y de un ± 10 % en la densidad energética, sumados cuadráticamente. El ritmo en porcentaje del peso corporal por semana se basa en Garthe 2011 y Helms 2014 (pérdida) e Iraki 2019 (ganancia). Tras 2–4 semanas, comprueba tu tendencia real en el registro de abajo y ajusta la ingesta.</p>',
+  },
+  data: {
+    h3: 'Guardar y compartir tus datos',
+    intro: 'Todo se queda en tu dispositivo. La copia de seguridad es un archivo; el enlace lleva tus datos solo en la parte posterior al símbolo de almohadilla, que tu navegador nunca envía a un servidor.',
+    exportJson: 'Exportar copia de seguridad (JSON)',
+    importJson: 'Importar copia de seguridad',
+    copyLink: 'Copiar enlace con mis datos',
+    linkCopied: 'Enlace copiado.',
+    linkPrompt: 'Enlace para copiar:',
+    linkNote: 'El enlace contiene los datos y el objetivo, pero no tu registro. Quien lo reciba verá esa información.',
+    imported: (n) => `Copia cargada (${n} ${n === 1 ? 'entrada del registro' : 'entradas del registro'}).`,
+    confirmImport: '¿Sustituir los datos actuales y el registro de este dispositivo por la copia de seguridad?',
+    linkLoaded: 'Datos cargados desde el enlace.',
+    errBackup: 'Este archivo no es una copia de seguridad válida de esta calculadora.',
+    fileName: 'copia-metabolismo-basal',
+  },
   faqTitle: 'Preguntas frecuentes sobre el metabolismo basal',
   faqMore: 'En detalle: todas las fórmulas, supuestos y fuentes →',
   faq: [
@@ -346,6 +402,14 @@ export const es: UI = {
         html: `<p>Si anotas peso y calorías durante al menos 14 días (idealmente 3–4 semanas):</p>
 <code class="formula">Gasto = ingesta media − tendencia de peso [kg/día] × 7700 kcal/kg</code>
 <p>Determinamos la tendencia por regresión lineal de los últimos 28 días. El rango tiene en cuenta el ruido de la báscula, los errores al contar calorías (± 7 %), los días sin datos y la incertidumbre de la regla de 7700 kcal en pérdidas rápidas.</p>`,
+      },
+      {
+        id: 'objetivo',
+        h2: 'Peso objetivo y calendario',
+        html: `<p>El plan mantiene la ingesta constante y deja que el gasto se mueva con el peso: 10 kcal × PAL por cada kg de cambio (la pendiente del peso en Mifflin-St Jeor). Con 7.700 kcal por kg de peso corporal, el peso se aproxima a un peso de equilibrio (Hall et al. 2011):</p>
+<code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   con λ = 10 · PAL / 7.700 por día, w* = w₀ + (ingesta − gasto total) / (10 · PAL)</code>
+<p>De ahí salen la ingesta objetivo (según el ritmo o el plazo elegido) y la duración. El intervalo desplaza el gasto total en ambos sentidos según su incertidumbre, sumada cuadráticamente a un ± 10 % de densidad energética. Si en el caso desfavorable nunca se alcanza el objetivo, lo decimos en lugar de inventar una cifra.</p>
+<p>Niveles de ritmo en % del peso corporal por semana: pérdida 0,25 / 0,5 / 0,75 (aviso a partir del 1 %, Garthe 2011, Helms 2014), ganancia 0,1 / 0,25 / 0,5 (aviso por encima, Iraki 2019). Otros avisos: ingesta por debajo de 1.500 kcal (hombres) o 1.200 kcal (mujeres) o por debajo del metabolismo basal, déficit superior al 25 % del gasto total, IMC objetivo inferior a 18,5 (OMS) y edad inferior a 18 años.</p>`,
       },
       {
         id: 'rango',

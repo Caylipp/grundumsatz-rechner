@@ -15,6 +15,9 @@ Sprachen: Deutsch (`/`), Englisch (`/en/`), Spanisch (`/es/`), Vietnamesisch (`/
   6. **Gemessener Ruheumsatz** (indirekte Kalorimetrie, Labor oder Handgerät) → wird mit der Formelschätzung kombiniert
   7. Aktivität (PAL) → Gesamtumsatz
   8. Verlauf (Gewicht + kcal, ≥ 14 Tage) → tatsächlicher Gesamtumsatz, daraus der echte PAL
+  9. Zielgewicht → Zielzufuhr und Zeitplan
+- **Ziel-Rechner**: Zielgewicht → Zielzufuhr und Dauer als Spanne (Tempo in % Körpergewicht/Woche oder Zeitraum). Verbrauch sinkt mit dem Gewicht (Exponentialmodell nach Hall 2011), Unsicherheit des Gesamtumsatzes wird weitergeführt; Warnungen bei zu schnellem Tempo, zu niedriger Zufuhr, Untergewicht (`packages/core/src/goal.ts`)
+- **Sichern & Teilen** ohne Server: JSON-Sicherung (Eingaben, Ziel, Verlauf) und Teilen-Link, der die Eingaben nur im `#`-Fragment trägt (`packages/core/src/backup.ts`, bereinigt alle importierten Daten)
 - Körperfettwerte werden in Methodengruppen (direkt, Umfänge, Hautfalten) kombiniert; innerhalb einer Gruppe vorsichtig, weil sie dieselben Fehlerquellen teilen
 - **Genauigkeitsbalken** und pro Abschnitt eine Vorschau, wie stark er die Spanne verkleinert (z. B. „± 178 → ± 131 kcal“)
 - **Erklärung**: Rechenweg Schritt für Schritt, Formelvergleich mit Gewichtung, Körperzusammensetzung, Hinweise, Vorschläge

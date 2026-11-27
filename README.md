@@ -10,6 +10,8 @@ A basal metabolic rate calculator that gets **more precise the more you tell it*
 - **Method groups**: body-fat estimates are combined per method group, conservatively within a group because those methods share error sources.
 - **Accuracy preview**: each input section shows how much it would shrink the range (e.g. "±178 → ±131 kcal").
 - **Explainable result**: full calculation path, weighted formula comparison, body composition, hints.
+- **Goal planner**: target weight → target intake and duration as a range (pace in % body weight/week or a time frame). Expenditure falls with weight (exponential model after Hall 2011), the uncertainty of total expenditure is carried through; warns about too fast a pace, too low an intake and underweight.
+- **Back up and share without a server**: JSON backup (inputs, goal, log) and a share link that carries the inputs only in the `#` fragment; imported data is sanitised.
 - **Privacy by design**: everything runs client-side; no cookies, tracking or external fonts.
 - **SEO and PWA**: static page per language with `hreflang`, FAQ with JSON-LD, sitemap, sources page; installable and usable offline.
 

@@ -218,6 +218,62 @@ export const vi: UI = {
     csvHeader: 'ngay;can_nang_kg;kcal',
     chartAria: 'Diễn biến cân nặng',
   },
+  goal: {
+    h2: 'Cân nặng mục tiêu: lượng calo và lộ trình',
+    leadHtml:
+      'Bạn có thể ăn bao nhiêu để đạt cân nặng mục tiêu, và mất bao lâu? Kế hoạch xuất phát từ <strong>tổng năng lượng tiêu hao kèm độ bất định</strong> của bạn và tính đến việc mức tiêu hao giảm theo cân nặng. Vì vậy tiến trình chậm dần và thời gian được đưa ra dưới dạng một khoảng.',
+    needData: 'Hãy nhập thông tin cơ bản và mức độ vận động ở phía trên. Sau đó chúng tôi sẽ tính lượng ăn và lộ trình tại đây.',
+    target: 'Cân nặng mục tiêu (kg)',
+    pace: {
+      label: 'Tốc độ',
+      gentle: 'Chậm',
+      moderate: 'Vừa phải',
+      fast: 'Nhanh',
+      weeks: 'Trong một khoảng thời gian',
+      option: (label, pct) => `${label} (${pct} % mỗi tuần)`,
+      weeksLabel: 'Trong số tuần này',
+      weeksUnit: 'tuần',
+    },
+    intake: 'Lượng ăn mục tiêu',
+    perDay: 'kcal mỗi ngày',
+    maintainDetail: (t) => `Nhu cầu duy trì là ${t} kcal mỗi ngày. Cân nặng mục tiêu gần với cân nặng hiện tại của bạn.`,
+    deficit: (k, r, t) => `Thâm hụt ${k} ± ${r} kcal so với tổng năng lượng tiêu hao ${t} kcal của bạn`,
+    surplus: (k, r, t) => `Dư ${k} ± ${r} kcal so với tổng năng lượng tiêu hao ${t} kcal của bạn`,
+    maintain: 'Giữ nguyên cân nặng',
+    rate: (rate, range, pct) => `Lúc đầu ${rate} ± ${range} kg mỗi tuần (${pct} % cân nặng cơ thể)`,
+    duration: 'Thời gian',
+    durationValue: (w) => `khoảng ${w} tuần`,
+    durationRange: (a, b) => `Khoảng ước tính (khoảng 80 %): từ ${a} đến ${b} tuần`,
+    durationOpen: (a) => `Sớm nhất sau ${a} tuần; trong trường hợp bất lợi, lượng ăn này sẽ không đạt mục tiêu`,
+    durationNone: 'Không đạt được với lượng ăn này',
+    date: (d) => `dự kiến vào khoảng ${d}`,
+    bmi: (a, b) => `BMI ${a} → ${b}`,
+    chartTitle: 'Diễn biến dự kiến',
+    chartAria: 'Diễn biến cân nặng dự kiến cho đến mục tiêu',
+    legendExpected: 'Dự kiến',
+    legendBand: 'Khoảng (khoảng 80 %)',
+    legendTarget: 'Cân nặng mục tiêu',
+    week: 'Tuần',
+    warnTitle: 'Lưu ý về kế hoạch',
+    modelTitle: 'Cách tính',
+    modelHtml:
+      '<p>Lượng ăn được giữ không đổi. Mức tiêu hao giảm (hoặc tăng) 10 kcal × hệ số vận động cho mỗi kg thay đổi cân nặng, đây là hệ số của cân nặng trong công thức Mifflin-St Jeor. Với 7.700 kcal mỗi kg, cân nặng tiến dần về một mức cân bằng tại đó lượng ăn bằng mức tiêu hao (Hall và cs. 2011). Cách tính cứng nhắc «thâm hụt × số ngày ÷ 7.700» sẽ quá lạc quan.</p><p>Khoảng ước tính đến từ độ bất định của tổng năng lượng tiêu hao và ± 10 % ở mật độ năng lượng, cộng theo bình phương. Tốc độ tính theo phần trăm cân nặng mỗi tuần dựa trên Garthe 2011 và Helms 2014 (giảm cân) cũng như Iraki 2019 (tăng cân). Sau 2–4 tuần, hãy kiểm tra xu hướng thực tế trong nhật ký bên dưới và điều chỉnh lượng ăn.</p>',
+  },
+  data: {
+    h3: 'Sao lưu và chia sẻ dữ liệu',
+    intro: 'Mọi thứ vẫn nằm trên thiết bị của bạn. Bản sao lưu là một tệp; đường liên kết chỉ chứa dữ liệu của bạn ở phần sau dấu thăng, phần mà trình duyệt không bao giờ gửi đến máy chủ.',
+    exportJson: 'Xuất bản sao lưu (JSON)',
+    importJson: 'Nhập bản sao lưu',
+    copyLink: 'Sao chép liên kết kèm dữ liệu của tôi',
+    linkCopied: 'Đã sao chép liên kết.',
+    linkPrompt: 'Liên kết để sao chép:',
+    linkNote: 'Liên kết chứa dữ liệu nhập và mục tiêu, nhưng không có nhật ký của bạn. Ai nhận được liên kết sẽ thấy các thông tin này.',
+    imported: (n) => `Đã tải bản sao lưu (${n} mục nhật ký).`,
+    confirmImport: 'Thay dữ liệu nhập hiện tại và nhật ký trên thiết bị này bằng bản sao lưu?',
+    linkLoaded: 'Đã nhận dữ liệu từ liên kết.',
+    errBackup: 'Đây không phải bản sao lưu hợp lệ của công cụ này.',
+    fileName: 'sao-luu-trao-doi-chat',
+  },
   faqTitle: 'Câu hỏi thường gặp về BMR',
   faqMore: 'Chi tiết: tất cả công thức, giả định và nguồn →',
   faq: [
@@ -346,6 +402,14 @@ export const vi: UI = {
         html: `<p>Nếu bạn ghi cân nặng và calo ít nhất 14 ngày (lý tưởng 3–4 tuần):</p>
 <code class="formula">Tiêu hao = calo trung bình ăn vào − xu hướng cân nặng [kg/ngày] × 7.700 kcal/kg</code>
 <p>Xu hướng được xác định bằng hồi quy tuyến tính trong 28 ngày gần nhất. Khoảng ước tính tính đến nhiễu của cân, sai số khi đếm calo (± 7 %), những ngày thiếu dữ liệu và độ bất định của quy tắc 7.700 kcal khi giảm cân nhanh.</p>`,
+      },
+      {
+        id: 'muc-tieu',
+        h2: 'Cân nặng mục tiêu và lộ trình',
+        html: `<p>Kế hoạch giữ lượng ăn không đổi và để mức tiêu hao thay đổi theo cân nặng: 10 kcal × PAL cho mỗi kg thay đổi (hệ số cân nặng của Mifflin-St Jeor). Với 7.700 kcal mỗi kg cân nặng, cân nặng tiến dần về một mức cân bằng (Hall và cs. 2011):</p>
+<code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   với λ = 10 · PAL / 7.700 mỗi ngày, w* = w₀ + (lượng ăn − tổng tiêu hao) / (10 · PAL)</code>
+<p>Từ đó suy ra lượng ăn mục tiêu (theo tốc độ hoặc thời hạn đã chọn) và thời gian cần thiết. Khoảng ước tính dịch tổng năng lượng tiêu hao về hai phía theo độ bất định của nó, cộng bình phương với ± 10 % mật độ năng lượng. Nếu trong trường hợp bất lợi không bao giờ đạt mục tiêu, chúng tôi nói rõ như vậy thay vì đưa ra một con số bịa đặt.</p>
+<p>Các mức tốc độ theo % cân nặng mỗi tuần: giảm 0,25 / 0,5 / 0,75 (cảnh báo từ 1 %, Garthe 2011, Helms 2014), tăng 0,1 / 0,25 / 0,5 (cảnh báo nếu vượt, Iraki 2019). Các cảnh báo khác: lượng ăn dưới 1.500 kcal (nam) hoặc 1.200 kcal (nữ) hay dưới mức trao đổi chất cơ bản, thâm hụt trên 25 % tổng tiêu hao, BMI mục tiêu dưới 18,5 (WHO) và tuổi dưới 18.</p>`,
       },
       {
         id: 'khoang',

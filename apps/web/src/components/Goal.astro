@@ -1,0 +1,208 @@
+---
+import type { Locale } from '@grundumsatz/core';
+import { UI_TEXT } from '../i18n';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = UI_TEXT[locale].goal;
+---
+
+<section id="ziel" class="wrap goal" aria-labelledby="goal-h">
+  <h2 id="goal-h">{t.h2}</h2>
+  <p class="lead muted" set:html={t.leadHtml} />
+
+  <p class="muted" id="goal-empty">{t.needData}</p>
+
+  <div id="goal-body" hidden>
+    <div class="goal-grid">
+      <div class="card pad">
+        <form id="goal-form" novalidate>
+          <label class="field">
+            <span class="label">{t.target}</span>
+            <input name="targetKg" inputmode="decimal" autocomplete="off" />
+            <span class="err small" data-goal-error="targetKg"></span>
+          </label>
+          <label class="field">
+            <span class="label">{t.pace.label}</span>
+            <select name="pace" id="goal-pace"></select>
+          </label>
+          <label class="field" id="goal-weeks-field" hidden>
+            <span class="label">{t.pace.weeksLabel}</span>
+            <input name="weeks" inputmode="numeric" autocomplete="off" placeholder="20" />
+            <span class="err small" data-goal-error="weeks"></span>
+          </label>
+        </form>
+
+        <div class="goal-result" id="goal-result" hidden>
+          <div class="goal-intake">
+            <span class="small muted">{t.intake}</span>
+            <div class="val"><span id="goal-intake">0</span> <small>{t.perDay}</small></div>
+            <p class="small" id="goal-balance"></p>
+          </div>
+          <dl class="goal-facts">
+            <div><dt>{t.duration}</dt><dd id="goal-duration"></dd><dd class="muted small" id="goal-range"></dd><dd class="muted small" id="goal-date"></dd></div>
+            <div><dd class="small" id="goal-rate"></dd><dd class="muted small" id="goal-bmi"></dd></div>
+          </dl>
+        </div>
+        <div class="hints" id="goal-warnings"></div>
+      </div>
+
+      <div class="card pad" id="goal-chart-card" hidden>
+        <h3>{t.chartTitle}</h3>
+        <div class="chart" id="goal-chart"></div>
+      </div>
+    </div>
+
+    <details class="card model">
+      <summary>{t.modelTitle}</summary>
+      <div set:html={t.modelHtml} />
+    </details>
+  </div>
+</section>
+
+<style>
+  .goal {
+    margin-top: 56px;
+  }
+  .goal h2 {
+    font-size: 1.6rem;
+  }
+  .lead {
+    max-width: 780px;
+  }
+  .goal-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .goal-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .pad {
+    padding: 20px;
+  }
+  .pad h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+  #goal-form {
+    display: grid;
+    gap: 12px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .field input,
+  .field select {
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    min-width: 0;
+    width: 100%;
+  }
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .err {
+    color: var(--warn);
+  }
+  .err:empty {
+    display: none;
+  }
+  .goal-result {
+    margin-top: 18px;
+  }
+  .goal-intake {
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .goal-intake .val {
+    font-size: 1.9rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+  .goal-intake .val small {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .goal-intake p {
+    margin: 4px 0 0;
+  }
+  .goal-facts {
+    margin: 14px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .goal-facts dt {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .goal-facts dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  #goal-duration {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .hints {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .hints:empty {
+    display: none;
+  }
+  .hints :global(p) {
+    margin: 0;
+  }
+  .model {
+    margin-top: 20px;
+    padding: 14px 18px;
+    box-shadow: none;
+  }
+  .model summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+  .model :global(p) {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+</style>
+
+<style is:global>
+  .chart .goal-band {
+    fill: var(--band);
+  }
+  .chart .goal-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .chart .goal-target {
+    stroke: var(--warn);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+</style>

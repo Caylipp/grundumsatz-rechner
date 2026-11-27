@@ -27,3 +27,27 @@ export {
 export { evaluateModifiers } from './modifiers';
 export { fuse, fuseIndependent, quad } from './stats';
 export { LOCALES, MESSAGES, formatters, messages, type Messages } from './i18n';
+export {
+  GOAL_PACES,
+  GOAL_WEEKS_MAX,
+  GOAL_WEEKS_MIN,
+  GOAL_WEIGHT_MAX,
+  GOAL_WEIGHT_MIN,
+  planGoal,
+  type GoalInput,
+  type GoalOk,
+  type GoalPace,
+  type GoalPaceId,
+  type GoalPlan,
+  type GoalPoint,
+} from './goal';
+export {
+  buildBackup,
+  decodeShare,
+  encodeShare,
+  parseBackup,
+  sanitizeFields,
+  sanitizeLog,
+  type Backup,
+  type FieldMap,
+} from './backup';

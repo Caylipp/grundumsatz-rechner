@@ -3,6 +3,7 @@ import type { Locale } from '@grundumsatz/core';
 import Base from '../layouts/Base.astro';
 import Calculator from './Calculator.astro';
 import Explanation from './Explanation.astro';
+import Goal from './Goal.astro';
 import Tracker from './Tracker.astro';
 import { UI_TEXT, localePath } from '../i18n';
 
@@ -40,6 +41,7 @@ const jsonLd = [
 
   <Calculator locale={locale} />
   <Explanation locale={locale} />
+  <Goal locale={locale} />
   <Tracker locale={locale} />
 
   <section class="wrap seo" aria-labelledby="faq-h">

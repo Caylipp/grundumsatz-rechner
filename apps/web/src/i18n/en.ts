@@ -218,6 +218,62 @@ export const en: UI = {
     csvHeader: 'date;weight_kg;kcal',
     chartAria: 'Weight history',
   },
+  goal: {
+    h2: 'Target weight: calories and timeline',
+    leadHtml:
+      'How much can you eat to reach a target weight, and how long will it take? The plan starts from your <strong>total expenditure including its uncertainty</strong> and accounts for the fact that expenditure falls with body weight. That is why progress slows down and the duration comes as a range.',
+    needData: 'Enter your basics and activity above. Then we calculate intake and timeline here.',
+    target: 'Target weight (kg)',
+    pace: {
+      label: 'Pace',
+      gentle: 'Gentle',
+      moderate: 'Moderate',
+      fast: 'Brisk',
+      weeks: 'Within a time frame',
+      option: (label, pct) => `${label} (${pct}% per week)`,
+      weeksLabel: 'In this many weeks',
+      weeksUnit: 'weeks',
+    },
+    intake: 'Target intake',
+    perDay: 'kcal per day',
+    maintainDetail: (t) => `Maintenance needs ${t} kcal per day. Your target is close to your current weight.`,
+    deficit: (k, r, t) => `Deficit ${k} ± ${r} kcal versus your total expenditure of ${t} kcal`,
+    surplus: (k, r, t) => `Surplus ${k} ± ${r} kcal versus your total expenditure of ${t} kcal`,
+    maintain: 'Maintain weight',
+    rate: (rate, range, pct) => `Initially ${rate} ± ${range} kg per week (${pct}% of body weight)`,
+    duration: 'Duration',
+    durationValue: (w) => `about ${w} weeks`,
+    durationRange: (a, b) => `Range (about 80%): ${a} to ${b} weeks`,
+    durationOpen: (a) => `At the earliest after ${a} weeks; in the unfavourable case this intake will not reach the goal`,
+    durationNone: 'Not reachable at this intake',
+    date: (d) => `expected around ${d}`,
+    bmi: (a, b) => `BMI ${a} → ${b}`,
+    chartTitle: 'Expected progress',
+    chartAria: 'Expected weight progress towards the target',
+    legendExpected: 'Expected',
+    legendBand: 'Range (about 80%)',
+    legendTarget: 'Target weight',
+    week: 'Week',
+    warnTitle: 'Notes on the plan',
+    modelTitle: 'How this is calculated',
+    modelHtml:
+      '<p>Intake stays constant. Expenditure falls (or rises) by 10 kcal × activity factor per kg of weight change, which is the weight slope of the Mifflin-St Jeor equation. With 7,700 kcal per kg this gives an approach towards an equilibrium weight at which intake equals expenditure (Hall et al. 2011). A rigid “deficit × days ÷ 7,700” would be too optimistic.</p><p>The range comes from the uncertainty of your total expenditure and ± 10% for energy density, added in quadrature. The pace in percent of body weight per week follows Garthe 2011 and Helms 2014 (loss) and Iraki 2019 (gain). After 2–4 weeks, check your real trend in the log below and adjust your intake.</p>',
+  },
+  data: {
+    h3: 'Back up and share your data',
+    intro: 'Everything stays on your device. The backup is a file; the link carries your inputs only in the part after the hash sign, which your browser never sends to a server.',
+    exportJson: 'Export backup (JSON)',
+    importJson: 'Import backup',
+    copyLink: 'Copy link with my inputs',
+    linkCopied: 'Link copied.',
+    linkPrompt: 'Link to copy:',
+    linkNote: 'The link contains inputs and target, but not your log. Anyone who receives it can see these details.',
+    imported: (n) => `Backup loaded (${n} log ${n === 1 ? 'entry' : 'entries'}).`,
+    confirmImport: 'Replace the current inputs and the log on this device with the backup?',
+    linkLoaded: 'Inputs loaded from the link.',
+    errBackup: 'This is not a valid backup from this calculator.',
+    fileName: 'bmr-backup',
+  },
   faqTitle: 'Frequently asked questions about BMR',
   faqMore: 'In detail: all equations, assumptions and sources →',
   faq: [
@@ -346,6 +402,14 @@ export const en: UI = {
         html: `<p>If you log weight and calories for at least 14 days (ideally 3–4 weeks):</p>
 <code class="formula">Expenditure = avg. intake − weight trend [kg/day] × 7,700 kcal/kg</code>
 <p>We determine the trend by linear regression over the last 28 days. The range accounts for scale noise, calorie counting errors (± 7%), missing days and the uncertainty of the 7,700 kcal rule during fast weight loss.</p>`,
+      },
+      {
+        id: 'goal',
+        h2: 'Target weight and timeline',
+        html: `<p>The goal plan keeps intake constant and lets expenditure move with body weight: by 10 kcal × PAL per kg of change (the weight slope of Mifflin-St Jeor). With 7,700 kcal per kg of body weight, weight approaches an equilibrium weight (Hall et al. 2011):</p>
+<code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   with λ = 10 · PAL / 7,700 per day, w* = w₀ + (intake − total expenditure) / (10 · PAL)</code>
+<p>This yields the target intake (from the chosen pace or time frame) and the duration. The range shifts total expenditure in both directions by its uncertainty, added in quadrature with ± 10% energy density. If the goal is never reached in the unfavourable case, we say so instead of inventing a number.</p>
+<p>Pace steps in % of body weight per week: loss 0.25 / 0.5 / 0.75 (warning above 1%, Garthe 2011, Helms 2014), gain 0.1 / 0.25 / 0.5 (warning above that, Iraki 2019). Further warnings: intake below 1,500 kcal (men) or 1,200 kcal (women) or below BMR, a deficit above 25% of total expenditure, a target BMI below 18.5 (WHO), and age under 18.</p>`,
       },
       {
         id: 'range',

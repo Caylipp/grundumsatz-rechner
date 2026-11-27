@@ -218,6 +218,62 @@ export const de: UI = {
     csvHeader: 'datum;gewicht_kg;kcal',
     chartAria: 'Gewichtsverlauf',
   },
+  goal: {
+    h2: 'Zielgewicht: Kalorien und Zeitplan',
+    leadHtml:
+      'Wie viel darfst du essen, um ein Zielgewicht zu erreichen, und wie lange dauert es? Der Plan geht von deinem <strong>Gesamtumsatz samt Unsicherheit</strong> aus und rechnet ein, dass der Verbrauch mit dem Gewicht sinkt. Deshalb verlangsamt sich der Verlauf, und die Dauer kommt als Spanne.',
+    needData: 'Gib oben Grunddaten und deine Aktivität an. Dann berechnen wir hier Zufuhr und Zeitplan.',
+    target: 'Zielgewicht (kg)',
+    pace: {
+      label: 'Tempo',
+      gentle: 'Langsam',
+      moderate: 'Moderat',
+      fast: 'Zügig',
+      weeks: 'Bis zu einem Zeitraum',
+      option: (label, pct) => `${label} (${pct} % pro Woche)`,
+      weeksLabel: 'In so vielen Wochen',
+      weeksUnit: 'Wochen',
+    },
+    intake: 'Zielzufuhr',
+    perDay: 'kcal pro Tag',
+    maintainDetail: (t) => `Erhaltungsbedarf ${t} kcal pro Tag. Zielgewicht und Gewicht liegen nah beieinander.`,
+    deficit: (k, r, t) => `Defizit ${k} ± ${r} kcal gegenüber deinem Gesamtumsatz von ${t} kcal`,
+    surplus: (k, r, t) => `Überschuss ${k} ± ${r} kcal gegenüber deinem Gesamtumsatz von ${t} kcal`,
+    maintain: 'Gewicht halten',
+    rate: (rate, range, pct) => `Zu Beginn ${rate} ± ${range} kg pro Woche (${pct} % des Körpergewichts)`,
+    duration: 'Dauer',
+    durationValue: (w) => `ca. ${w} Wochen`,
+    durationRange: (a, b) => `Spanne (ca. 80 %): ${a} bis ${b} Wochen`,
+    durationOpen: (a) => `Frühestens nach ${a} Wochen, im ungünstigen Fall wird das Ziel mit dieser Zufuhr nicht erreicht`,
+    durationNone: 'Mit dieser Zufuhr nicht erreichbar',
+    date: (d) => `voraussichtlich um den ${d}`,
+    bmi: (a, b) => `BMI ${a} → ${b}`,
+    chartTitle: 'Erwarteter Verlauf',
+    chartAria: 'Erwarteter Gewichtsverlauf bis zum Zielgewicht',
+    legendExpected: 'Erwartet',
+    legendBand: 'Spanne (ca. 80 %)',
+    legendTarget: 'Zielgewicht',
+    week: 'Woche',
+    warnTitle: 'Hinweise zum Plan',
+    modelTitle: 'So wird gerechnet',
+    modelHtml:
+      '<p>Die Zufuhr bleibt konstant. Der Verbrauch sinkt (oder steigt) pro kg Gewichtsänderung um 10 kcal × Aktivitätsfaktor, das ist die Gewichtssteigung der Mifflin-St-Jeor-Formel. Mit 7.700 kcal je kg ergibt sich eine Annäherung an ein Gleichgewichtsgewicht, bei dem Zufuhr und Verbrauch gleich sind (Hall et al. 2011). Ein starres „Defizit × Tage ÷ 7.700“ wäre zu optimistisch.</p><p>Die Spanne entsteht aus der Unsicherheit deines Gesamtumsatzes und ± 10 % bei der Energiedichte, quadratisch addiert. Das Tempo in Prozent des Körpergewichts pro Woche orientiert sich an Garthe 2011 und Helms 2014 (Abnahme) sowie Iraki 2019 (Zunahme). Prüfe nach 2–4 Wochen deinen echten Trend im Verlauf unten und passe die Zufuhr an.</p>',
+  },
+  data: {
+    h3: 'Daten sichern und teilen',
+    intro: 'Alles bleibt auf deinem Gerät. Die Sicherung ist eine Datei, der Link enthält deine Eingaben nur im Teil nach dem Rautenzeichen, den dein Browser nie an einen Server schickt.',
+    exportJson: 'Sicherung exportieren (JSON)',
+    importJson: 'Sicherung importieren',
+    copyLink: 'Link mit meinen Eingaben kopieren',
+    linkCopied: 'Link kopiert.',
+    linkPrompt: 'Link zum Kopieren:',
+    linkNote: 'Der Link enthält Eingaben und Ziel, aber nicht deinen Verlauf. Wer ihn bekommt, sieht diese Angaben.',
+    imported: (n) => `Sicherung geladen (${n} ${n === 1 ? 'Verlaufseintrag' : 'Verlaufseinträge'}).`,
+    confirmImport: 'Aktuelle Eingaben und den Verlauf auf diesem Gerät durch die Sicherung ersetzen?',
+    linkLoaded: 'Eingaben aus dem Link übernommen.',
+    errBackup: 'Das ist keine gültige Sicherung dieses Rechners.',
+    fileName: 'grundumsatz-sicherung',
+  },
   faqTitle: 'Häufige Fragen zum Grundumsatz',
   faqMore: 'Ausführlich: alle Formeln, Annahmen und Quellen →',
   faq: [
@@ -346,6 +402,14 @@ export const de: UI = {
         html: `<p>Notierst du über mindestens 14 Tage (ideal 3–4 Wochen) Gewicht und Kalorien, gilt:</p>
 <code class="formula">Verbrauch = Ø Kalorienzufuhr − Gewichtstrend [kg/Tag] × 7.700 kcal/kg</code>
 <p>Den Trend bestimmen wir per linearer Regression über die letzten 28 Tage. Der Bereich berücksichtigt Waagen-Rauschen, Fehler beim Kalorienzählen (± 7 %), fehlende Tage und die Unsicherheit der 7.700-kcal-Regel bei schneller Abnahme.</p>`,
+      },
+      {
+        id: 'ziel',
+        h2: 'Zielgewicht und Zeitplan',
+        html: `<p>Der Zielplan hält die Zufuhr konstant und lässt den Verbrauch mit dem Gewicht mitwandern: pro kg Änderung um 10 kcal × PAL (die Gewichtssteigung von Mifflin-St Jeor). Mit 7.700 kcal je kg Körpergewicht folgt das Gewicht einer Annäherung an ein Gleichgewichtsgewicht (Hall et al. 2011):</p>
+<code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   mit λ = 10 · PAL / 7.700 pro Tag, w* = w₀ + (Zufuhr − Gesamtumsatz) / (10 · PAL)</code>
+<p>Daraus folgen Zielzufuhr (aus gewähltem Tempo oder Zeitraum) und Dauer. Die Spanne verschiebt den Gesamtumsatz um die Unsicherheit des Gesamtumsatzes, quadratisch addiert mit ± 10 % Energiedichte, in beide Richtungen. Kommt das Ziel im ungünstigen Fall nie, sagen wir das, statt eine Zahl zu erfinden.</p>
+<p>Tempo-Stufen in % des Körpergewichts pro Woche: Abnahme 0,25 / 0,5 / 0,75 (Warnung ab 1 %, Garthe 2011, Helms 2014), Zunahme 0,1 / 0,25 / 0,5 (Warnung darüber, Iraki 2019). Weitere Warnungen: Zufuhr unter 1.500 kcal (Männer) bzw. 1.200 kcal (Frauen) oder unter dem Grundumsatz, Defizit über 25 % des Gesamtumsatzes, Ziel-BMI unter 18,5 (WHO), unter 18 Jahren.</p>`,
       },
       {
         id: 'bereich',

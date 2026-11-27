@@ -2,8 +2,16 @@ import {
   DW4_SITES,
   JP3_SITES,
   JP7_SITES,
+  GOAL_PACES,
   adaptiveTdee,
+  buildBackup,
   calculate,
+  decodeShare,
+  encodeShare,
+  parseBackup,
+  planGoal,
+  sanitizeFields,
+  sanitizeLog,
   dayNumber,
   formatters,
   isoFromDay,
@@ -11,6 +19,9 @@ import {
   type BodyFatSource,
   type CalcResult,
   type FieldError,
+  type FieldMap,
+  type GoalOk,
+  type GoalPaceId,
   type Inputs,
   type Locale,
   type LogEntry,
@@ -21,10 +32,12 @@ import {
 } from '@grundumsatz/core';
 import { UI_TEXT, isLocale } from '../i18n';
 import { renderChart } from './chart';
+import { renderGoalChart } from './goalChart';
 import { $, dateFormatter, esc, parseNum, store, todayIso } from './util';
 
 const FORM_KEY = 'grundumsatz:form';
 const LOG_KEY = 'grundumsatz:log';
+const GOAL_KEY = 'grundumsatz:goal';
 const REMEMBER_KEY = 'grundumsatz:remember';
 
 const htmlLang = document.documentElement.lang;
@@ -38,6 +51,7 @@ const SITES: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'supraili
 
 const form = $('#calc-form') as HTMLFormElement;
 const logForm = $('#log-form') as HTMLFormElement;
+const goalForm = $('#goal-form') as HTMLFormElement;
 
 let log: LogEntry[] = sortLog(store.get<LogEntry[]>(LOG_KEY) ?? []);
 let lastResult: CalcResult | undefined;
@@ -225,6 +239,7 @@ function update() {
   lastResult = result;
   renderResult(result);
   renderExplanation(result);
+  renderGoal(result);
   renderTrackerStatus(result.adaptive, result);
 }
 
@@ -239,6 +254,7 @@ function renderEmpty() {
   $('#explain-empty').hidden = false;
   $('#explain-body').hidden = true;
   $('#mini-result').hidden = true;
+  renderGoal(undefined);
   for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-gain]'))) el.textContent = '';
   renderTrackerStatus(log.length ? adaptiveTdee(log, locale) : undefined, undefined);
 }
@@ -507,6 +523,221 @@ function download(name: string, content: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+
+// ─────────────────────────────────────────────────────────────── Ziel
+
+let paceDirection: 'lose' | 'gain' | undefined;
+
+function goalSnapshot(): FieldMap {
+  const out: FieldMap = {};
+  for (const name of ['targetKg', 'pace', 'weeks']) out[name] = (goalForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value;
+  return out;
+}
+
+function goalRestore(state: FieldMap) {
+  for (const name of ['targetKg', 'weeks']) {
+    if (name in state) (goalForm.elements.namedItem(name) as HTMLInputElement).value = String(state[name] ?? '');
+  }
+  if (typeof state.pace === 'string') (goalForm.elements.namedItem('pace') as HTMLSelectElement).dataset.want = state.pace;
+}
+
+function fillPaceOptions(dir: 'lose' | 'gain') {
+  const P = T.goal.pace;
+  const select = goalForm.elements.namedItem('pace') as HTMLSelectElement;
+  const want = (select.dataset.want ?? select.value) || 'moderate';
+  delete select.dataset.want;
+  const ids: GoalPaceId[] = ['gentle', 'moderate', 'fast'];
+  select.innerHTML =
+    ids.map((id) => `<option value="${id}">${esc(P.option(P[id], f.num(GOAL_PACES[dir][id])))}</option>`).join('') +
+    `<option value="weeks">${esc(P.weeks)}</option>`;
+  select.value = [...ids, 'weeks'].includes(want) ? want : 'moderate';
+  paceDirection = dir;
+}
+
+function renderGoal(r: CalcResult | undefined) {
+  const body = $('#goal-body');
+  const tdee = r?.tdee;
+  const weightKg = parseNum(val('weight'));
+  const sex = currentSex();
+  const age = parseNum(val('age'));
+  const heightCm = parseNum(val('height'));
+  if (!r || !tdee || weightKg === undefined || sex === undefined || age === undefined || heightCm === undefined) {
+    $('#goal-empty').hidden = false;
+    body.hidden = true;
+    return;
+  }
+  $('#goal-empty').hidden = true;
+  body.hidden = false;
+
+  const targetKg = parseNum((goalForm.elements.namedItem('targetKg') as HTMLInputElement).value);
+  const hasTarget = targetKg !== undefined && !Number.isNaN(targetKg);
+  const dir: 'lose' | 'gain' = hasTarget && targetKg! > weightKg ? 'gain' : 'lose';
+  if (paceDirection !== dir) fillPaceOptions(dir);
+
+  const paceValue = (goalForm.elements.namedItem('pace') as HTMLSelectElement).value;
+  $('#goal-weeks-field').hidden = paceValue !== 'weeks';
+  const weeks = parseNum((goalForm.elements.namedItem('weeks') as HTMLInputElement).value);
+
+  const errs = new Map<string, string>();
+  const show = () => {
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-goal-error]'))) el.textContent = errs.get(el.dataset.goalError!) ?? '';
+  };
+  const hideResult = () => {
+    $('#goal-result').hidden = true;
+    $('#goal-chart-card').hidden = true;
+    $('#goal-warnings').innerHTML = '';
+  };
+  if (!hasTarget || (paceValue === 'weeks' && weeks === undefined)) {
+    show();
+    hideResult();
+    return;
+  }
+
+  const plan = planGoal({
+    sex,
+    age,
+    heightCm,
+    weightKg,
+    targetKg: targetKg!,
+    tdee: { value: tdee.value, range: tdee.range },
+    bmr: r.bmr,
+    pace: paceValue === 'weeks' ? { kind: 'weeks', weeks: weeks ?? NaN } : { kind: 'rate', pace: paceValue as GoalPaceId },
+    locale,
+  });
+  if (plan.status === 'error') {
+    for (const e of plan.errors) errs.set(e.field, e.message);
+    show();
+    hideResult();
+    return;
+  }
+  show();
+  renderGoalPlan(plan, weightKg, targetKg!, tdee.value);
+}
+
+function renderGoalPlan(plan: GoalOk, weightKg: number, targetKg: number, tdeeValue: number) {
+  const G = T.goal;
+  $('#goal-result').hidden = false;
+  $('#goal-intake').textContent = f.int(plan.intake);
+  const bal = plan.direction === 'maintain'
+    ? G.maintainDetail(f.int(tdeeValue))
+    : plan.direction === 'lose'
+      ? G.deficit(f.int(-plan.balance), f.int(plan.balanceRange), f.int(tdeeValue))
+      : G.surplus(f.int(plan.balance), f.int(plan.balanceRange), f.int(tdeeValue));
+  $('#goal-balance').textContent = bal;
+
+  const maintain = plan.direction === 'maintain';
+  $('#goal-duration').textContent = maintain ? G.maintain : plan.weeks === null ? G.durationNone : G.durationValue(f.int(plan.weeks));
+  $('#goal-range').textContent = maintain
+    ? ''
+    : plan.weeks === null
+      ? ''
+      : plan.weeksFast !== null && plan.weeksSlow !== null
+        ? G.durationRange(f.int(plan.weeksFast), f.int(plan.weeksSlow))
+        : plan.weeksFast !== null
+          ? G.durationOpen(f.int(plan.weeksFast))
+          : '';
+  $('#goal-date').textContent = plan.weeks === null || maintain ? '' : G.date(fd(isoFromDay(dayNumber(todayIso()) + Math.round(plan.weeks * 7)), true));
+  $('#goal-rate').textContent = maintain ? '' : G.rate(`${plan.rateKgPerWeek < 0 ? '−' : '+'}${f.dec2(Math.abs(plan.rateKgPerWeek))}`, f.dec2(plan.rateRange), f.dec2(plan.ratePct));
+  $('#goal-bmi').textContent = maintain ? '' : G.bmi(f.dec1(plan.bmiStart), f.dec1(plan.bmiTarget));
+  $('#goal-warnings').innerHTML = plan.warnings.map((w) => `<p class="note${w.level === 'warn' ? ' warn' : ''}">${esc(w.text)}</p>`).join('');
+
+  const card = $('#goal-chart-card');
+  card.hidden = maintain;
+  if (!maintain) $('#goal-chart').innerHTML = renderGoalChart(plan, weightKg, targetKg, locale, G);
+}
+
+function saveGoal() {
+  if (checked('remember')) store.set(GOAL_KEY, goalSnapshot());
+}
+
+// ─────────────────────────────────────────────────────────────── Sicherung & Link
+
+function setStatus(text: string, isError = false) {
+  const el = $('#data-status');
+  el.textContent = text;
+  el.style.color = isError ? 'var(--warn)' : '';
+}
+
+/** Ersetzt Eingaben und Ziel (Felder, die in `state` fehlen, werden geleert). */
+function applyInputs(state: FieldMap, goal: FieldMap) {
+  const keep = checked('remember');
+  form.reset();
+  const { remember: _ignored, ...rest } = state;
+  restore(rest);
+  (field('remember') as HTMLInputElement).checked = keep;
+  goalForm.reset();
+  paceDirection = undefined;
+  goalRestore(goal);
+  for (const d of Array.from(form.querySelectorAll<HTMLDetailsElement>('details.group'))) {
+    const filled = Array.from(d.querySelectorAll<HTMLInputElement>('input')).some((el) =>
+      el.type === 'checkbox' || el.type === 'radio' ? el.checked && el.value !== '' && el.value !== 'on' : el.value !== '',
+    );
+    if (filled) d.open = true;
+  }
+  shownValue = 0;
+}
+
+function downloadFile(name: string, content: string, mime: string) {
+  const share = (window as unknown as { __shareFile?: (n: string, c: string) => Promise<void> }).__shareFile;
+  if (share) {
+    void share(name, content).catch(() => {});
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([content], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function initData() {
+  const D = T.data;
+  $('#data-export').addEventListener('click', () => {
+    const backup = buildBackup(snapshot() as FieldMap, goalSnapshot(), log);
+    downloadFile(`${D.fileName}-${todayIso()}.json`, JSON.stringify(backup, null, 2), 'application/json');
+  });
+  $('#data-import').addEventListener('change', async (e) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const text = file.size < 2_000_000 ? await file.text() : '';
+    input.value = '';
+    const backup = parseBackup(text);
+    if (!backup) return void setStatus(D.errBackup, true);
+    if (!confirm(D.confirmImport)) return;
+    applyInputs(backup.form, backup.goal);
+    log = sanitizeLog(backup.log);
+    store.set(LOG_KEY, log);
+    saveGoal();
+    renderLogTable();
+    update();
+    setStatus(D.imported(log.length));
+  });
+  const linkBtn = document.getElementById('data-link');
+  linkBtn?.addEventListener('click', async () => {
+    const url = `${location.origin}${location.pathname}#d=${encodeShare(snapshot() as FieldMap, goalSnapshot())}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setStatus(D.linkCopied);
+    } catch {
+      window.prompt(D.linkPrompt, url);
+    }
+  });
+
+  // Geteilter Link: Fragment lesen (wird nie an den Server gesendet) und danach aus der Adresse entfernen
+  const m = location.hash.match(/^#d=([A-Za-z0-9_-]+)$/);
+  if (m) {
+    const shared = decodeShare(m[1]!);
+    history.replaceState(null, '', location.pathname + location.search);
+    if (shared) {
+      applyInputs(shared.form, shared.goal);
+      saveGoal();
+      setStatus(D.linkLoaded);
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────── Verdrahtung
 
 function init() {
@@ -526,6 +757,16 @@ function init() {
     update();
   });
   form.addEventListener('submit', (e) => e.preventDefault());
+
+  const savedGoal = store.get<FieldMap>(GOAL_KEY);
+  if (savedGoal && remember !== false) goalRestore(sanitizeFields(savedGoal));
+  const onGoalChange = () => {
+    saveGoal();
+    update();
+  };
+  goalForm.addEventListener('input', onGoalChange);
+  goalForm.addEventListener('change', onGoalChange);
+  goalForm.addEventListener('submit', (e) => e.preventDefault());
 
   $('#reset-btn').addEventListener('click', () => {
     const keep = checked('remember');
@@ -606,6 +847,7 @@ function init() {
     new IntersectionObserver(([entry]) => mini.classList.toggle('away', entry!.isIntersecting)).observe($('#result'));
   }
 
+  initData();
   renderLogTable();
   update();
 }

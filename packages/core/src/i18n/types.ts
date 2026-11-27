@@ -95,6 +95,21 @@ export interface Messages {
     missingDays: S;
     short: S;
   };
+  goal: {
+    errTarget: (min: S, max: S) => S;
+    errWeeks: (min: S, max: S) => S;
+    under18: S;
+    floor: (intake: S, floor: S) => S;
+    belowBmr: (bmr: S) => S;
+    deficitLarge: (pct: S) => S;
+    lossFast: (pct: S) => S;
+    gainFast: (pct: S) => S;
+    startBmiLow: (bmi: S) => S;
+    targetBmiLow: (bmi: S) => S;
+    plateau: (kg: S) => S;
+    slowNotReached: S;
+    longHorizon: S;
+  };
   validation: {
     sex: S;
     missing: (label: S) => S;

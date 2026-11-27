@@ -1,12 +1,13 @@
 ---
 import { formatters, type Locale } from '@grundumsatz/core';
-import { UI_TEXT } from '../i18n';
+import { IS_APP, UI_TEXT } from '../i18n';
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const t = UI_TEXT[locale].tracker;
+const d = UI_TEXT[locale].data;
 const fmt = formatters(locale);
 ---
 
@@ -63,6 +64,21 @@ const fmt = formatters(locale);
         </div>
       </details>
     </div>
+  </div>
+
+  <div class="card pad data-card" id="daten">
+    <h3>{d.h3}</h3>
+    <p class="small muted">{d.intro}</p>
+    <div class="tools">
+      <button class="btn ghost small" type="button" id="data-export">{d.exportJson}</button>
+      <label class="btn ghost small file-btn">
+        {d.importJson}
+        <input type="file" accept=".json,application/json" id="data-import" class="sr-only" />
+      </label>
+      {!IS_APP && <button class="btn ghost small" type="button" id="data-link">{d.copyLink}</button>}
+    </div>
+    {!IS_APP && <p class="small muted">{d.linkNote}</p>}
+    <p class="small" id="data-status" role="status"></p>
   </div>
 </section>
 
@@ -152,6 +168,12 @@ const fmt = formatters(locale);
   }
   .file-btn {
     position: relative;
+  }
+  .data-card {
+    margin-top: 20px;
+  }
+  .data-card p {
+    margin: 0 0 8px;
   }
   .chart {
     min-height: 120px;
