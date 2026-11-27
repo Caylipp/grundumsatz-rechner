@@ -259,6 +259,28 @@ export const en: UI = {
     modelHtml:
       '<p>Intake stays constant. Expenditure falls (or rises) by 10 kcal × activity factor per kg of weight change, which is the weight slope of the Mifflin-St Jeor equation. With 7,700 kcal per kg this gives an approach towards an equilibrium weight at which intake equals expenditure (Hall et al. 2011). A rigid “deficit × days ÷ 7,700” would be too optimistic.</p><p>The range comes from the uncertainty of your total expenditure and ± 10% for energy density, added in quadrature. The pace in percent of body weight per week follows Garthe 2011 and Helms 2014 (loss) and Iraki 2019 (gain). After 2–4 weeks, check your real trend in the log below and adjust your intake.</p>',
   },
+  macro: {
+    h3: 'Macronutrient split',
+    leadHtml: 'How do protein, fat and carbohydrates share this energy? Protein follows your goal, fat has a minimum, carbohydrates are the rest. Because the sources only give ranges, you get ranges and a midpoint guide value, not false precision.',
+    srcGoal: (kcal) => `Split over your target intake of ${kcal} kcal per day.`,
+    srcMaintain: (kcal, range) => `Split over your total expenditure (maintenance) of ${kcal} ± ${range} kcal per day. The uncertainty of the expenditure is carried into the carbohydrate range.`,
+    refFfm: (kg) => `Protein based on your fat-free mass (${kg} kg)`,
+    refWeight: (kg) => `Protein based on your body weight (${kg} kg)`,
+    proteinLabel: 'Set protein yourself (g per kg, optional)',
+    proteinHint: 'Leave empty for the default for your goal.',
+    protein: 'Protein',
+    fat: 'Fat',
+    carbs: 'Carbohydrates',
+    gday: 'g per day',
+    perKg: (a, b) => `${a} to ${b} g per kg`,
+    perKgOne: (a) => `${a} g per kg (your choice)`,
+    span: (a, b) => `Range ${a} to ${b} g`,
+    kcal: 'kcal',
+    pct: '% of energy',
+    bar: 'Shares of energy',
+    modelTitle: 'How this is calculated',
+    modelHtml: '<p>Protein in g per kg: maintenance 1.2–1.8, gain 1.6–2.2, loss 1.8–2.4 (body weight). With known body fat we use fat-free mass: 1.5–2.2, 2.0–2.7 and 2.3–3.1 g per kg (Morton 2018, ISSN 2017, Helms 2014). The highest values come from studies in lean, training people while dieting; without training less is enough (DGE: 0.8 g per kg minimum). Fat: at least 0.6 g per kg body weight and 20% of energy, up to 35% (DGE: 30–35%). The guide value takes the middle of the protein range and about 27.5% fat. Carbohydrates are the rest at 4 kcal per g; their range follows from the protein and fat ranges and, at maintenance, from the uncertainty of total expenditure.</p><p>With kidney disease, pregnancy, breastfeeding or eating disorders different values apply; talk to a doctor or dietitian first.</p>',
+  },
   data: {
     h3: 'Back up and share your data',
     intro: 'Everything stays on your device. The backup is a file; the link carries your inputs only in the part after the hash sign, which your browser never sends to a server.',
@@ -410,6 +432,11 @@ export const en: UI = {
 <code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   with λ = 10 · PAL / 7,700 per day, w* = w₀ + (intake − total expenditure) / (10 · PAL)</code>
 <p>This yields the target intake (from the chosen pace or time frame) and the duration. The range shifts total expenditure in both directions by its uncertainty, added in quadrature with ± 10% energy density. If the goal is never reached in the unfavourable case, we say so instead of inventing a number.</p>
 <p>Pace steps in % of body weight per week: loss 0.25 / 0.5 / 0.75 (warning above 1%, Garthe 2011, Helms 2014), gain 0.1 / 0.25 / 0.5 (warning above that, Iraki 2019). Further warnings: intake below 1,500 kcal (men) or 1,200 kcal (women) or below BMR, a deficit above 25% of total expenditure, a target BMI below 18.5 (WHO), and age under 18.</p>`,
+      },
+      {
+        id: 'macros',
+        h2: 'Macronutrient split',
+        html: `<p>The macro split starts from the target intake (or total expenditure at maintenance). Protein is given in g per kg and follows the goal: maintenance 1.2–1.8, gain 1.6–2.2, loss 1.8–2.4 g per kg body weight (Morton 2018, Jäger et al. 2017: ISSN position stand). If body fat is known, fat-free mass is the reference: 1.5–2.2 / 2.0–2.7 / 2.3–3.1 g per kg (Helms 2014 for dieting lean people).</p><p>Fat: the larger of 0.6 g per kg body weight and 20% of energy as the lower bound, 35% as the upper bound (DGE reference values: 30–35% depending on activity). Carbohydrates are the rest (4 kcal per g). Their range combines the protein and fat ranges with the uncertainty of total expenditure; with a fixed target intake the last part drops out because the intake is chosen.</p><p>Warnings appear for impossible combinations (minimum protein and fat above the energy), below 1,000 kcal, a very high protein share (over 35% of energy or over 2.5 g per kg), under 100 g of carbohydrates, BMI of 30 or more without a body fat value, and under 18 years. These are guide values, not nutrition counselling.</p>`,
       },
       {
         id: 'range',

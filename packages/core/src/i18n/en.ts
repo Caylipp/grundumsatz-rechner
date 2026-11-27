@@ -166,6 +166,15 @@ export const en: Messages = {
     slowNotReached: 'In the unfavourable case (expenditure at the edge of the range) this intake will not reach the goal. Check your trend and adjust the intake.',
     longHorizon: 'Beyond a year the forecast is only rough. Adjust your intake every 2–4 weeks to your actual weight trend.',
   },
+  macro: {
+    errProtein: (min, max) => `Please enter protein between ${min} and ${max} g per kg.`,
+    under18: 'These guidelines do not apply under 18; they are meant for adults. Please seek medical or dietitian advice.',
+    tinyEnergy: (kcal) => `At only ${kcal} kcal per day, nutrient needs can hardly be met. This is not advisable without medical supervision.`,
+    infeasible: (need, energy) => `Even the minimum protein and fat need about ${need} kcal, more than the planned ${energy} kcal. This combination does not add up: raise the intake or choose less protein.`,
+    proteinHigh: (pct, perKg) => `Protein makes up about ${pct}% of energy, or ${perKg} g per kg body weight. That is very high; with kidney disease, check with your doctor first.`,
+    carbsLow: (g) => `Under ${g} g of carbohydrates per day is low. It is possible, but not ideal with a lot of exercise or for fibre intake.`,
+    refObese: 'Without a body fat value, protein refers to body weight. At a BMI of 30 or more this overestimates the need; with body fat (above) fat-free mass is used.',
+  },
   validation: {
     sex: 'Please select sex.',
     missing: (l) => `${l} is missing.`,

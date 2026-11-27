@@ -259,6 +259,28 @@ export const es: UI = {
     modelHtml:
       '<p>La ingesta se mantiene constante. El gasto baja (o sube) 10 kcal × factor de actividad por cada kg de cambio de peso, que es la pendiente del peso en la fórmula de Mifflin-St Jeor. Con 7.700 kcal por kg resulta una aproximación a un peso de equilibrio en el que ingesta y gasto coinciden (Hall et al. 2011). Un simple «déficit × días ÷ 7.700» sería demasiado optimista.</p><p>El intervalo procede de la incertidumbre de tu gasto total y de un ± 10 % en la densidad energética, sumados cuadráticamente. El ritmo en porcentaje del peso corporal por semana se basa en Garthe 2011 y Helms 2014 (pérdida) e Iraki 2019 (ganancia). Tras 2–4 semanas, comprueba tu tendencia real en el registro de abajo y ajusta la ingesta.</p>',
   },
+  macro: {
+    h3: 'Reparto de macronutrientes',
+    leadHtml: '¿Cómo se reparten proteínas, grasas e hidratos de carbono esta energía? La proteína depende de tu objetivo, la grasa tiene un mínimo y los hidratos son el resto. Como las fuentes solo dan rangos, obtienes rangos y un valor orientativo en el centro, sin falsa precisión.',
+    srcGoal: (kcal) => `Repartido sobre tu ingesta objetivo de ${kcal} kcal al día.`,
+    srcMaintain: (kcal, range) => `Repartido sobre tu gasto total (mantener peso) de ${kcal} ± ${range} kcal al día. La incertidumbre del gasto pasa al rango de hidratos de carbono.`,
+    refFfm: (kg) => `Proteína sobre tu masa libre de grasa (${kg} kg)`,
+    refWeight: (kg) => `Proteína sobre tu peso corporal (${kg} kg)`,
+    proteinLabel: 'Fijar la proteína tú mismo (g por kg, opcional)',
+    proteinHint: 'Déjalo vacío para el valor estándar según tu objetivo.',
+    protein: 'Proteína',
+    fat: 'Grasa',
+    carbs: 'Hidratos de carbono',
+    gday: 'g al día',
+    perKg: (a, b) => `${a} a ${b} g por kg`,
+    perKgOne: (a) => `${a} g por kg (elegido por ti)`,
+    span: (a, b) => `Rango ${a} a ${b} g`,
+    kcal: 'kcal',
+    pct: '% de la energía',
+    bar: 'Porcentaje de la energía',
+    modelTitle: 'Cómo se calcula',
+    modelHtml: '<p>Proteína en g por kg: mantener 1,2–1,8, ganar 1,6–2,2, perder 1,8–2,4 (peso corporal). Con la grasa corporal conocida usamos la masa libre de grasa: 1,5–2,2, 2,0–2,7 y 2,3–3,1 g por kg (Morton 2018, ISSN 2017, Helms 2014). Los valores más altos vienen de estudios con personas delgadas que entrenan y hacen dieta; sin entrenar basta menos (DGE: mínimo 0,8 g por kg). Grasa: al menos 0,6 g por kg de peso y el 20 % de la energía, hasta el 35 % (DGE: 30–35 %). El valor orientativo toma el centro del rango de proteína y un 27,5 % de grasa. Los hidratos son el resto a 4 kcal por g; su rango resulta de los rangos de proteína y grasa y, al mantener, de la incertidumbre del gasto total.</p><p>Con enfermedad renal, embarazo, lactancia o trastornos de la conducta alimentaria valen otros valores; consúltalo antes con tu médico o dietista.</p>',
+  },
   data: {
     h3: 'Guardar y compartir tus datos',
     intro: 'Todo se queda en tu dispositivo. La copia de seguridad es un archivo; el enlace lleva tus datos solo en la parte posterior al símbolo de almohadilla, que tu navegador nunca envía a un servidor.',
@@ -410,6 +432,11 @@ export const es: UI = {
 <code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   con λ = 10 · PAL / 7.700 por día, w* = w₀ + (ingesta − gasto total) / (10 · PAL)</code>
 <p>De ahí salen la ingesta objetivo (según el ritmo o el plazo elegido) y la duración. El intervalo desplaza el gasto total en ambos sentidos según su incertidumbre, sumada cuadráticamente a un ± 10 % de densidad energética. Si en el caso desfavorable nunca se alcanza el objetivo, lo decimos en lugar de inventar una cifra.</p>
 <p>Niveles de ritmo en % del peso corporal por semana: pérdida 0,25 / 0,5 / 0,75 (aviso a partir del 1 %, Garthe 2011, Helms 2014), ganancia 0,1 / 0,25 / 0,5 (aviso por encima, Iraki 2019). Otros avisos: ingesta por debajo de 1.500 kcal (hombres) o 1.200 kcal (mujeres) o por debajo del metabolismo basal, déficit superior al 25 % del gasto total, IMC objetivo inferior a 18,5 (OMS) y edad inferior a 18 años.</p>`,
+      },
+      {
+        id: 'macros',
+        h2: 'Reparto de macronutrientes',
+        html: `<p>El reparto parte de la ingesta objetivo (o del gasto total al mantener). La proteína se da en g por kg y sigue el objetivo: mantener 1,2–1,8, ganar 1,6–2,2, perder 1,8–2,4 g por kg de peso (Morton 2018, Jäger et al. 2017: posición de la ISSN). Si se conoce la grasa corporal, la referencia es la masa libre de grasa: 1,5–2,2 / 2,0–2,7 / 2,3–3,1 g por kg (Helms 2014 para dieta en personas delgadas).</p><p>Grasa: el mayor valor entre 0,6 g por kg de peso y el 20 % de la energía como límite inferior, y el 35 % como superior (valores de referencia de la DGE: 30–35 % según la actividad). Los hidratos son el resto (4 kcal por g). Su rango combina los de proteína y grasa con la incertidumbre del gasto total; con una ingesta objetivo fija esta última parte desaparece porque la ingesta está elegida.</p><p>Hay avisos para combinaciones imposibles (mínimo de proteína y grasa por encima de la energía), por debajo de 1.000 kcal, con una proporción de proteína muy alta (más del 35 % de la energía o más de 2,5 g por kg), con menos de 100 g de hidratos, con IMC de 30 o más sin grasa corporal y en menores de 18 años. Son valores orientativos, no asesoramiento nutricional.</p>`,
       },
       {
         id: 'rango',

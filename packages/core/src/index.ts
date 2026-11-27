@@ -51,3 +51,13 @@ export {
   type Backup,
   type FieldMap,
 } from './backup';
+export {
+  PROTEIN_OVERRIDE_MAX,
+  PROTEIN_OVERRIDE_MIN,
+  PROTEIN_PER_KG,
+  planMacros,
+  type MacroInput,
+  type MacroOk,
+  type MacroPlan,
+  type MacroRange,
+} from './macro';

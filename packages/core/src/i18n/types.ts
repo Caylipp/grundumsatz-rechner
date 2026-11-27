@@ -110,6 +110,15 @@ export interface Messages {
     slowNotReached: S;
     longHorizon: S;
   };
+  macro: {
+    errProtein: (min: S, max: S) => S;
+    under18: S;
+    tinyEnergy: (kcal: S) => S;
+    infeasible: (need: S, energy: S) => S;
+    proteinHigh: (pct: S, perKg: S) => S;
+    carbsLow: (g: S) => S;
+    refObese: S;
+  };
   validation: {
     sex: S;
     missing: (label: S) => S;

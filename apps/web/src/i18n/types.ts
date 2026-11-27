@@ -174,6 +174,28 @@ export interface UI {
     modelTitle: S;
     modelHtml: S;
   };
+  macro: {
+    h3: S;
+    leadHtml: S;
+    srcGoal: (kcal: S) => S;
+    srcMaintain: (kcal: S, range: S) => S;
+    refFfm: (kg: S) => S;
+    refWeight: (kg: S) => S;
+    proteinLabel: S;
+    proteinHint: S;
+    protein: S;
+    fat: S;
+    carbs: S;
+    gday: S;
+    perKg: (a: S, b: S) => S;
+    perKgOne: (a: S) => S;
+    span: (a: S, b: S) => S;
+    kcal: S;
+    pct: S;
+    bar: S;
+    modelTitle: S;
+    modelHtml: S;
+  };
   data: {
     h3: S;
     intro: S;

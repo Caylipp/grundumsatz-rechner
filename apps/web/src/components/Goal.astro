@@ -7,6 +7,7 @@ interface Props {
 }
 const { locale } = Astro.props;
 const t = UI_TEXT[locale].goal;
+const m = UI_TEXT[locale].macro;
 ---
 
 <section id="ziel" class="wrap goal" aria-labelledby="goal-h">
@@ -53,6 +54,30 @@ const t = UI_TEXT[locale].goal;
         <h3>{t.chartTitle}</h3>
         <div class="chart" id="goal-chart"></div>
       </div>
+    </div>
+
+    <div class="card pad macro" id="macro-card">
+      <h3>{m.h3}</h3>
+      <p class="muted small" set:html={m.leadHtml} />
+      <p class="small" id="macro-source"></p>
+      <label class="field macro-input">
+        <span class="label">{m.proteinLabel}</span>
+        <input name="proteinPerKg" form="goal-form" id="macro-protein" inputmode="decimal" autocomplete="off" placeholder="2,0" />
+        <span class="muted small">{m.proteinHint}</span>
+        <span class="err small" data-goal-error="proteinPerKg"></span>
+      </label>
+      <div id="macro-result" hidden>
+        <p class="small muted" id="macro-ref"></p>
+        <div class="macro-bar" id="macro-bar" role="img"></div>
+        <div class="table-scroll">
+          <table class="macro-table" id="macro-table"></table>
+        </div>
+      </div>
+      <div class="hints" id="macro-warnings"></div>
+      <details class="model-inner">
+        <summary>{m.modelTitle}</summary>
+        <div set:html={m.modelHtml} />
+      </details>
     </div>
 
     <details class="card model">
@@ -192,6 +217,64 @@ const t = UI_TEXT[locale].goal;
 </style>
 
 <style is:global>
+  .macro {
+    margin-top: 20px;
+  }
+  .macro-input {
+    max-width: 320px;
+    margin: 10px 0 14px;
+  }
+  .macro-bar {
+    display: flex;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 8px 0 12px;
+    background: var(--border);
+  }
+  .macro-bar span {
+    display: block;
+    height: 100%;
+  }
+  .macro-bar .m-protein {
+    background: var(--accent);
+  }
+  .macro-bar .m-fat {
+    background: var(--warn);
+    opacity: 0.75;
+  }
+  .macro-bar .m-carbs {
+    background: var(--muted);
+    opacity: 0.55;
+  }
+  .macro-table th,
+  .macro-table td {
+    text-align: left;
+    vertical-align: top;
+    font-variant-numeric: tabular-nums;
+  }
+  .macro-table .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .macro-table .big {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .model-inner {
+    margin-top: 12px;
+  }
+  .model-inner summary {
+    cursor: pointer;
+    font-weight: 650;
+  }
+  .model-inner p {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
   .chart .goal-band {
     fill: var(--band);
   }

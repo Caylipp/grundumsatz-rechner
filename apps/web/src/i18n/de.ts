@@ -259,6 +259,28 @@ export const de: UI = {
     modelHtml:
       '<p>Die Zufuhr bleibt konstant. Der Verbrauch sinkt (oder steigt) pro kg Gewichtsänderung um 10 kcal × Aktivitätsfaktor, das ist die Gewichtssteigung der Mifflin-St-Jeor-Formel. Mit 7.700 kcal je kg ergibt sich eine Annäherung an ein Gleichgewichtsgewicht, bei dem Zufuhr und Verbrauch gleich sind (Hall et al. 2011). Ein starres „Defizit × Tage ÷ 7.700“ wäre zu optimistisch.</p><p>Die Spanne entsteht aus der Unsicherheit deines Gesamtumsatzes und ± 10 % bei der Energiedichte, quadratisch addiert. Das Tempo in Prozent des Körpergewichts pro Woche orientiert sich an Garthe 2011 und Helms 2014 (Abnahme) sowie Iraki 2019 (Zunahme). Prüfe nach 2–4 Wochen deinen echten Trend im Verlauf unten und passe die Zufuhr an.</p>',
   },
+  macro: {
+    h3: 'Makro-Verteilung',
+    leadHtml: 'Wie verteilen sich Eiweiß, Fett und Kohlenhydrate auf diese Energie? Eiweiß richtet sich nach deinem Ziel, Fett hat ein Minimum, Kohlenhydrate sind der Rest. Weil die Quellen nur Spannen hergeben, bekommst du Spannen und einen Richtwert in der Mitte, keine Scheingenauigkeit.',
+    srcGoal: (kcal) => `Verteilt auf deine Zielzufuhr von ${kcal} kcal pro Tag.`,
+    srcMaintain: (kcal, range) => `Verteilt auf deinen Gesamtumsatz (Gewicht halten) von ${kcal} ± ${range} kcal pro Tag. Die Unsicherheit des Umsatzes steckt in der Kohlenhydrat-Spanne.`,
+    refFfm: (kg) => `Eiweiß bezogen auf deine fettfreie Masse (${kg} kg)`,
+    refWeight: (kg) => `Eiweiß bezogen auf dein Körpergewicht (${kg} kg)`,
+    proteinLabel: 'Eiweiß selbst festlegen (g pro kg, optional)',
+    proteinHint: 'Leer lassen für den Standard nach Ziel.',
+    protein: 'Eiweiß',
+    fat: 'Fett',
+    carbs: 'Kohlenhydrate',
+    gday: 'g pro Tag',
+    perKg: (a, b) => `${a} bis ${b} g pro kg`,
+    perKgOne: (a) => `${a} g pro kg (selbst gewählt)`,
+    span: (a, b) => `Spanne ${a} bis ${b} g`,
+    kcal: 'kcal',
+    pct: '% der Energie',
+    bar: 'Anteile an der Energie',
+    modelTitle: 'So wird gerechnet',
+    modelHtml: '<p>Eiweiß in g pro kg: Halten 1,2–1,8, Zunehmen 1,6–2,2, Abnehmen 1,8–2,4 (Körpergewicht). Mit bekanntem Körperfett beziehen wir uns auf die fettfreie Masse: 1,5–2,2, 2,0–2,7 bzw. 2,3–3,1 g pro kg (Morton 2018, ISSN 2017, Helms 2014). Die höchsten Werte stammen aus Studien an schlanken, trainierenden Menschen in der Diät; ohne Training genügt weniger (DGE: 0,8 g pro kg als Minimum). Fett: mindestens 0,6 g pro kg Körpergewicht und 20 % der Energie, nach oben 35 % (DGE: 30–35 %). Der Richtwert nimmt die Mitte der Eiweißspanne und etwa 27,5 % Fett. Kohlenhydrate sind der Rest mit 4 kcal pro g; ihre Spanne folgt aus den Spannen von Eiweiß und Fett und, beim Halten, aus der Unsicherheit des Gesamtumsatzes.</p><p>Bei Nierenerkrankungen, Schwangerschaft, Stillzeit oder Essstörungen gelten andere Werte; sprich vorher mit Ärztin, Arzt oder Ernährungsfachkraft.</p>',
+  },
   data: {
     h3: 'Daten sichern und teilen',
     intro: 'Alles bleibt auf deinem Gerät. Die Sicherung ist eine Datei, der Link enthält deine Eingaben nur im Teil nach dem Rautenzeichen, den dein Browser nie an einen Server schickt.',
@@ -410,6 +432,11 @@ export const de: UI = {
 <code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   mit λ = 10 · PAL / 7.700 pro Tag, w* = w₀ + (Zufuhr − Gesamtumsatz) / (10 · PAL)</code>
 <p>Daraus folgen Zielzufuhr (aus gewähltem Tempo oder Zeitraum) und Dauer. Die Spanne verschiebt den Gesamtumsatz um die Unsicherheit des Gesamtumsatzes, quadratisch addiert mit ± 10 % Energiedichte, in beide Richtungen. Kommt das Ziel im ungünstigen Fall nie, sagen wir das, statt eine Zahl zu erfinden.</p>
 <p>Tempo-Stufen in % des Körpergewichts pro Woche: Abnahme 0,25 / 0,5 / 0,75 (Warnung ab 1 %, Garthe 2011, Helms 2014), Zunahme 0,1 / 0,25 / 0,5 (Warnung darüber, Iraki 2019). Weitere Warnungen: Zufuhr unter 1.500 kcal (Männer) bzw. 1.200 kcal (Frauen) oder unter dem Grundumsatz, Defizit über 25 % des Gesamtumsatzes, Ziel-BMI unter 18,5 (WHO), unter 18 Jahren.</p>`,
+      },
+      {
+        id: 'macros',
+        h2: 'Makro-Verteilung',
+        html: `<p>Die Makro-Verteilung geht von der Zielzufuhr (oder dem Gesamtumsatz beim Halten) aus. Eiweiß wird in g pro kg angegeben und folgt dem Ziel: Halten 1,2–1,8, Zunehmen 1,6–2,2, Abnehmen 1,8–2,4 g pro kg Körpergewicht (Morton 2018, Jäger et al. 2017: ISSN-Positionspapier). Ist das Körperfett bekannt, gilt die fettfreie Masse als Bezug: 1,5–2,2 / 2,0–2,7 / 2,3–3,1 g pro kg (Helms 2014 für die Diät magerer Menschen).</p><p>Fett: Maximum aus 0,6 g pro kg Körpergewicht und 20 % der Energie als Untergrenze, 35 % als Obergrenze (DGE-Referenzwerte: 30–35 % je nach Aktivität). Kohlenhydrate sind der Rest (4 kcal pro g). Ihre Spanne kombiniert die Eiweiß- und Fettspannen mit der Unsicherheit des Gesamtumsatzes; bei einer festen Zielzufuhr entfällt der letzte Teil, weil die Zufuhr gewählt ist.</p><p>Warnungen gibt es bei unmöglichen Kombinationen (Minimum an Eiweiß und Fett über der Energie), unter 1.000 kcal, sehr hohem Eiweißanteil (über 35 % der Energie oder über 2,5 g pro kg), weniger als 100 g Kohlenhydraten, BMI ab 30 ohne Körperfettwert und unter 18 Jahren. Es sind Richtwerte, keine Ernährungsberatung.</p>`,
       },
       {
         id: 'bereich',

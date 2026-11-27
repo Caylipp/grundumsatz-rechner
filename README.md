@@ -11,6 +11,7 @@ A basal metabolic rate calculator that gets **more precise the more you tell it*
 - **Accuracy preview**: each input section shows how much it would shrink the range (e.g. "±178 → ±131 kcal").
 - **Explainable result**: full calculation path, weighted formula comparison, body composition, hints.
 - **Goal planner**: target weight → target intake and duration as a range (pace in % body weight/week or a time frame). Expenditure falls with weight (exponential model after Hall 2011), the uncertainty of total expenditure is carried through; warns about too fast a pace, too low an intake and underweight.
+- **Macronutrient split**: protein, fat and carbohydrates as ranges from the target intake (or total expenditure). Protein in g/kg by goal (maintain 1.2–1.8, gain 1.6–2.2, lose 1.8–2.4; fat-free mass as reference when body fat is known), fat minimum 0.6 g/kg and 20 % of energy, carbohydrates as the rest; the expenditure uncertainty is carried into the carbohydrate range. Optional own protein value, warnings for implausible combinations.
 - **Back up and share without a server**: JSON backup (inputs, goal, log) and a share link that carries the inputs only in the `#` fragment; imported data is sanitised.
 - **Privacy by design**: everything runs client-side; no cookies, tracking or external fonts.
 - **SEO and PWA**: static page per language with `hreflang`, FAQ with JSON-LD, sitemap, sources page; installable and usable offline.

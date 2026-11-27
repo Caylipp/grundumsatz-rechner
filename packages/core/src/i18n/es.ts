@@ -166,6 +166,15 @@ export const es: Messages = {
     slowNotReached: 'En el caso desfavorable (gasto en el borde del intervalo) esta ingesta no alcanza el objetivo. Vigila la tendencia y ajusta la ingesta.',
     longHorizon: 'A más de un año vista la previsión es solo aproximada. Ajusta la ingesta cada 2–4 semanas a tu tendencia real de peso.',
   },
+  macro: {
+    errProtein: (min, max) => `Indica la proteína entre ${min} y ${max} g por kg.`,
+    under18: 'Estas pautas no valen para menores de 18 años; están pensadas para adultos. Consulta con un profesional médico o dietista.',
+    tinyEnergy: (kcal) => `Con solo ${kcal} kcal al día apenas se cubren las necesidades de nutrientes. Sin supervisión médica no es recomendable.`,
+    infeasible: (need, energy) => `Incluso el mínimo de proteína y grasa necesita unas ${need} kcal, más que las ${energy} kcal previstas. La combinación no cuadra: sube la ingesta o elige menos proteína.`,
+    proteinHigh: (pct, perKg) => `La proteína supone aprox. un ${pct} % de la energía, es decir, ${perKg} g por kg de peso. Es muy alto; con enfermedad renal, consúltalo antes con tu médico.`,
+    carbsLow: (g) => `Menos de ${g} g de hidratos de carbono al día es poco. Es posible, pero poco ideal con mucho deporte o para la fibra.`,
+    refObese: 'Sin porcentaje de grasa, la proteína se refiere al peso corporal. Con IMC de 30 o más eso sobreestima la necesidad; con la grasa corporal (arriba) se usa la masa libre de grasa.',
+  },
   validation: {
     sex: 'Elige el sexo.',
     missing: (l) => `Falta: ${l}.`,

@@ -17,6 +17,7 @@ Sprachen: Deutsch (`/`), Englisch (`/en/`), Spanisch (`/es/`), Vietnamesisch (`/
   8. Verlauf (Gewicht + kcal, ≥ 14 Tage) → tatsächlicher Gesamtumsatz, daraus der echte PAL
   9. Zielgewicht → Zielzufuhr und Zeitplan
 - **Ziel-Rechner**: Zielgewicht → Zielzufuhr und Dauer als Spanne (Tempo in % Körpergewicht/Woche oder Zeitraum). Verbrauch sinkt mit dem Gewicht (Exponentialmodell nach Hall 2011), Unsicherheit des Gesamtumsatzes wird weitergeführt; Warnungen bei zu schnellem Tempo, zu niedriger Zufuhr, Untergewicht (`packages/core/src/goal.ts`)
+- **Makro-Verteilung**: Eiweiß, Fett und Kohlenhydrate als Spannen aus Zielzufuhr (bzw. Gesamtumsatz). Eiweiß in g/kg nach Ziel (Halten 1,2–1,8, Zunehmen 1,6–2,2, Abnehmen 1,8–2,4; Bezug auf fettfreie Masse, wenn Körperfett bekannt), Fett mindestens 0,6 g/kg und 20 % Energie, Kohlenhydrate als Rest; die Unsicherheit des Umsatzes steckt in der Kohlenhydrat-Spanne. Eigener Eiweißwert optional, Warnungen bei unplausiblen Kombinationen (`packages/core/src/macro.ts`)
 - **Sichern & Teilen** ohne Server: JSON-Sicherung (Eingaben, Ziel, Verlauf) und Teilen-Link, der die Eingaben nur im `#`-Fragment trägt (`packages/core/src/backup.ts`, bereinigt alle importierten Daten)
 - Körperfettwerte werden in Methodengruppen (direkt, Umfänge, Hautfalten) kombiniert; innerhalb einer Gruppe vorsichtig, weil sie dieselben Fehlerquellen teilen
 - **Genauigkeitsbalken** und pro Abschnitt eine Vorschau, wie stark er die Spanne verkleinert (z. B. „± 178 → ± 131 kcal“)

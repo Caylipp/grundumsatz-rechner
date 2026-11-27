@@ -166,6 +166,15 @@ export const vi: Messages = {
     slowNotReached: 'Trong trường hợp bất lợi (mức tiêu hao ở rìa khoảng ước tính), lượng ăn này sẽ không đạt mục tiêu. Hãy theo dõi xu hướng cân nặng và điều chỉnh lượng ăn.',
     longHorizon: 'Xa hơn một năm, dự báo chỉ mang tính tương đối. Hãy điều chỉnh lượng ăn mỗi 2–4 tuần theo xu hướng cân nặng thực tế.',
   },
+  macro: {
+    errProtein: (min, max) => `Vui lòng nhập protein trong khoảng ${min} đến ${max} g mỗi kg.`,
+    under18: 'Các mức khuyến nghị này không áp dụng cho người dưới 18 tuổi; chúng dành cho người lớn. Hãy hỏi bác sĩ hoặc chuyên gia dinh dưỡng.',
+    tinyEnergy: (kcal) => `Chỉ với ${kcal} kcal mỗi ngày thì khó đáp ứng nhu cầu dinh dưỡng. Không nên làm vậy nếu không có bác sĩ theo dõi.`,
+    infeasible: (need, energy) => `Ngay cả mức protein và chất béo tối thiểu cũng cần khoảng ${need} kcal, nhiều hơn ${energy} kcal dự kiến. Không khớp: hãy tăng lượng ăn vào hoặc chọn ít protein hơn.`,
+    proteinHigh: (pct, perKg) => `Protein chiếm khoảng ${pct} % năng lượng, tức ${perKg} g mỗi kg cân nặng. Mức này rất cao; nếu có bệnh thận, hãy hỏi bác sĩ trước.`,
+    carbsLow: (g) => `Dưới ${g} g carbohydrate mỗi ngày là ít. Vẫn làm được, nhưng không lý tưởng khi tập nhiều hoặc về chất xơ.`,
+    refObese: 'Khi không có tỷ lệ mỡ cơ thể, protein tính theo cân nặng. Với BMI từ 30 trở lên, cách này ước tính quá cao; nếu nhập mỡ cơ thể (ở trên) sẽ dùng khối lượng nạc.',
+  },
   validation: {
     sex: 'Vui lòng chọn giới tính.',
     missing: (l) => `Thiếu ${l.toLowerCase()}.`,

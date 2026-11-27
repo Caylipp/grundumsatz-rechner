@@ -167,6 +167,15 @@ export const de: Messages = {
     slowNotReached: 'Im ungünstigen Fall (Verbrauch am Rand der Spanne) wird das Ziel mit dieser Zufuhr nicht erreicht. Kontrolliere deshalb den Trend und passe die Zufuhr an.',
     longHorizon: 'Über ein Jahr hinaus ist die Prognose nur grob. Passe die Zufuhr alle 2–4 Wochen an deinen tatsächlichen Gewichtstrend an.',
   },
+  macro: {
+    errProtein: (min, max) => `Eiweiß bitte zwischen ${min} und ${max} g pro kg.`,
+    under18: 'Unter 18 Jahren gelten diese Richtwerte nicht; sie sind für Erwachsene gedacht. Lass dich ärztlich oder ernährungsfachlich beraten.',
+    tinyEnergy: (kcal) => `Bei nur ${kcal} kcal pro Tag lässt sich der Nährstoffbedarf kaum decken. Das ist ohne ärztliche Begleitung nicht zu empfehlen.`,
+    infeasible: (need, energy) => `Selbst das Minimum an Eiweiß und Fett braucht etwa ${need} kcal, mehr als die vorgesehenen ${energy} kcal. Die Kombination geht nicht auf: Zufuhr erhöhen oder weniger Eiweiß wählen.`,
+    proteinHigh: (pct, perKg) => `Eiweiß macht etwa ${pct} % der Energie bzw. ${perKg} g pro kg Körpergewicht aus. Das ist sehr hoch; bei Nierenerkrankungen vorher ärztlich klären.`,
+    carbsLow: (g) => `Weniger als ${g} g Kohlenhydrate pro Tag sind wenig. Das geht, ist aber bei viel Sport und für die Ballaststoffzufuhr ungünstig.`,
+    refObese: 'Ohne Körperfettwert bezieht sich Eiweiß auf das Körpergewicht. Bei BMI ab 30 überschätzt das den Bedarf; mit Körperfett (oben) wird die fettfreie Masse genutzt.',
+  },
   validation: {
     sex: 'Bitte Geschlecht wählen.',
     missing: (l) => `${l} fehlt.`,

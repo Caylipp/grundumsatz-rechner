@@ -10,6 +10,7 @@ import {
   encodeShare,
   parseBackup,
   planGoal,
+  planMacros,
   sanitizeFields,
   sanitizeLog,
   dayNumber,
@@ -530,12 +531,12 @@ let paceDirection: 'lose' | 'gain' | undefined;
 
 function goalSnapshot(): FieldMap {
   const out: FieldMap = {};
-  for (const name of ['targetKg', 'pace', 'weeks']) out[name] = (goalForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value;
+  for (const name of ['targetKg', 'pace', 'weeks', 'proteinPerKg']) out[name] = (goalForm.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement).value;
   return out;
 }
 
 function goalRestore(state: FieldMap) {
-  for (const name of ['targetKg', 'weeks']) {
+  for (const name of ['targetKg', 'weeks', 'proteinPerKg']) {
     if (name in state) (goalForm.elements.namedItem(name) as HTMLInputElement).value = String(state[name] ?? '');
   }
   if (typeof state.pace === 'string') (goalForm.elements.namedItem('pace') as HTMLSelectElement).dataset.want = state.pace;
@@ -587,7 +588,9 @@ function renderGoal(r: CalcResult | undefined) {
     $('#goal-chart-card').hidden = true;
     $('#goal-warnings').innerHTML = '';
   };
+  const macroBase = { r, tdee, weightKg, age, heightCm };
   if (!hasTarget || (paceValue === 'weeks' && weeks === undefined)) {
+    renderMacros(macroBase, undefined, errs);
     show();
     hideResult();
     return;
@@ -606,12 +609,66 @@ function renderGoal(r: CalcResult | undefined) {
   });
   if (plan.status === 'error') {
     for (const e of plan.errors) errs.set(e.field, e.message);
+    renderMacros(macroBase, undefined, errs);
     show();
     hideResult();
     return;
   }
+  renderMacros(macroBase, plan, errs);
   show();
   renderGoalPlan(plan, weightKg, targetKg!, tdee.value);
+}
+
+function renderMacros(
+  b: { r: CalcResult; tdee: { value: number; range: number }; weightKg: number; age: number; heightCm: number },
+  plan: GoalOk | undefined,
+  errs: Map<string, string>,
+) {
+  const M = T.macro;
+  const planned = plan !== undefined && plan.direction !== 'maintain';
+  const energy = planned ? plan!.intake : b.tdee.value;
+  const energyRange = planned ? 0 : b.tdee.range;
+  const rawProtein = (goalForm.elements.namedItem('proteinPerKg') as HTMLInputElement).value;
+  const proteinPerKg = rawProtein.trim() === '' ? undefined : parseNum(rawProtein);
+  const m = planMacros({
+    age: b.age,
+    heightCm: b.heightCm,
+    weightKg: b.weightKg,
+    energy,
+    energyRange,
+    direction: plan ? plan.direction : 'maintain',
+    ffmKg: b.r.bodyComposition?.ffmKg,
+    proteinPerKg: proteinPerKg === undefined ? undefined : proteinPerKg,
+    locale,
+  });
+  $('#macro-source').textContent = planned ? M.srcGoal(f.int(energy)) : M.srcMaintain(f.int(energy), f.int(energyRange));
+  const result = $('#macro-result');
+  if (m.status === 'error') {
+    for (const e of m.errors) errs.set(e.field, e.message);
+    result.hidden = true;
+    $('#macro-warnings').innerHTML = '';
+    return;
+  }
+  result.hidden = false;
+  $('#macro-ref').textContent = (m.refKind === 'ffm' ? M.refFfm : M.refWeight)(f.dec1(m.refKg));
+  const pct = (x: number) => Math.max(0, x * 100);
+  $('#macro-bar').setAttribute('aria-label', M.bar);
+  $('#macro-bar').innerHTML =
+    `<span class="m-protein" style="width:${pct(m.share.protein)}%"></span>` +
+    `<span class="m-fat" style="width:${pct(m.share.fat)}%"></span>` +
+    `<span class="m-carbs" style="width:${pct(m.share.carbs)}%"></span>`;
+  const perKg = m.customProtein ? M.perKgOne(f.num(m.proteinPerKg.low)) : M.perKg(f.num(m.proteinPerKg.low), f.num(m.proteinPerKg.high));
+  const row = (cls: string, name: string, r: { low: number; mid: number; high: number }, kcalPer: number, share: number, extra = '') =>
+    `<tr><td><span class="dot m-${cls}" style="background:var(--${cls === 'protein' ? 'accent' : cls === 'fat' ? 'warn' : 'muted'})"></span>${esc(name)}</td>` +
+    `<td><span class="big">${f.int(r.mid)} g</span><br /><span class="muted small">${esc(r.high - r.low < 0.5 ? extra : M.span(f.int(r.low), f.int(r.high)) + (extra ? ' · ' + extra : ''))}</span></td>` +
+    `<td>${f.int(r.mid * kcalPer)} ${esc(M.kcal)}<br /><span class="muted small">${f.int(share * 100)} ${esc(M.pct)}</span></td></tr>`;
+  $('#macro-table').innerHTML =
+    `<thead><tr><th></th><th>${esc(M.gday)}</th><th>${esc(M.kcal)}</th></tr></thead><tbody>` +
+    row('protein', M.protein, m.protein, 4, m.share.protein, perKg) +
+    row('fat', M.fat, m.fat, 9, m.share.fat) +
+    row('carbs', M.carbs, m.carbs, 4, m.share.carbs) +
+    `</tbody>`;
+  $('#macro-warnings').innerHTML = m.warnings.map((w) => `<p class="note${w.level === 'warn' ? ' warn' : ''}">${esc(w.text)}</p>`).join('');
 }
 
 function renderGoalPlan(plan: GoalOk, weightKg: number, targetKg: number, tdeeValue: number) {
@@ -767,6 +824,8 @@ function init() {
   goalForm.addEventListener('input', onGoalChange);
   goalForm.addEventListener('change', onGoalChange);
   goalForm.addEventListener('submit', (e) => e.preventDefault());
+  const proteinEl = goalForm.elements.namedItem('proteinPerKg') as HTMLInputElement;
+  proteinEl.addEventListener('input', onGoalChange);
 
   $('#reset-btn').addEventListener('click', () => {
     const keep = checked('remember');

@@ -259,6 +259,28 @@ export const vi: UI = {
     modelHtml:
       '<p>Lượng ăn được giữ không đổi. Mức tiêu hao giảm (hoặc tăng) 10 kcal × hệ số vận động cho mỗi kg thay đổi cân nặng, đây là hệ số của cân nặng trong công thức Mifflin-St Jeor. Với 7.700 kcal mỗi kg, cân nặng tiến dần về một mức cân bằng tại đó lượng ăn bằng mức tiêu hao (Hall và cs. 2011). Cách tính cứng nhắc «thâm hụt × số ngày ÷ 7.700» sẽ quá lạc quan.</p><p>Khoảng ước tính đến từ độ bất định của tổng năng lượng tiêu hao và ± 10 % ở mật độ năng lượng, cộng theo bình phương. Tốc độ tính theo phần trăm cân nặng mỗi tuần dựa trên Garthe 2011 và Helms 2014 (giảm cân) cũng như Iraki 2019 (tăng cân). Sau 2–4 tuần, hãy kiểm tra xu hướng thực tế trong nhật ký bên dưới và điều chỉnh lượng ăn.</p>',
   },
+  macro: {
+    h3: 'Phân bổ chất sinh năng lượng',
+    leadHtml: 'Protein, chất béo và carbohydrate chia nhau mức năng lượng này thế nào? Protein theo mục tiêu của bạn, chất béo có mức tối thiểu, carbohydrate là phần còn lại. Vì các nguồn chỉ cho khoảng giá trị, bạn nhận được các khoảng và một giá trị tham khảo ở giữa, không phải độ chính xác giả tạo.',
+    srcGoal: (kcal) => `Chia theo mức ăn mục tiêu ${kcal} kcal mỗi ngày.`,
+    srcMaintain: (kcal, range) => `Chia theo tổng tiêu hao (giữ cân) ${kcal} ± ${range} kcal mỗi ngày. Độ không chắc chắn của tiêu hao được chuyển vào khoảng carbohydrate.`,
+    refFfm: (kg) => `Protein tính theo khối lượng nạc của bạn (${kg} kg)`,
+    refWeight: (kg) => `Protein tính theo cân nặng của bạn (${kg} kg)`,
+    proteinLabel: 'Tự đặt protein (g mỗi kg, tùy chọn)',
+    proteinHint: 'Để trống để dùng mức mặc định theo mục tiêu.',
+    protein: 'Protein',
+    fat: 'Chất béo',
+    carbs: 'Carbohydrate',
+    gday: 'g mỗi ngày',
+    perKg: (a, b) => `${a} đến ${b} g mỗi kg`,
+    perKgOne: (a) => `${a} g mỗi kg (bạn chọn)`,
+    span: (a, b) => `Khoảng ${a} đến ${b} g`,
+    kcal: 'kcal',
+    pct: '% năng lượng',
+    bar: 'Tỷ lệ năng lượng',
+    modelTitle: 'Cách tính',
+    modelHtml: '<p>Protein tính bằng g mỗi kg: giữ cân 1,2–1,8, tăng cân 1,6–2,2, giảm cân 1,8–2,4 (theo cân nặng). Khi biết mỡ cơ thể, ta dùng khối lượng nạc: 1,5–2,2, 2,0–2,7 và 2,3–3,1 g mỗi kg (Morton 2018, ISSN 2017, Helms 2014). Mức cao nhất đến từ nghiên cứu ở người gầy, có tập luyện, đang ăn kiêng; nếu không tập thì cần ít hơn (DGE: tối thiểu 0,8 g mỗi kg). Chất béo: ít nhất 0,6 g mỗi kg cân nặng và 20 % năng lượng, tối đa 35 % (DGE: 30–35 %). Giá trị tham khảo lấy giữa khoảng protein và khoảng 27,5 % chất béo. Carbohydrate là phần còn lại, 4 kcal mỗi g; khoảng của nó suy ra từ khoảng protein và chất béo và, khi giữ cân, từ độ không chắc chắn của tổng tiêu hao.</p><p>Với bệnh thận, thai kỳ, cho con bú hoặc rối loạn ăn uống, các giá trị khác nhau; hãy hỏi bác sĩ hoặc chuyên gia dinh dưỡng trước.</p>',
+  },
   data: {
     h3: 'Sao lưu và chia sẻ dữ liệu',
     intro: 'Mọi thứ vẫn nằm trên thiết bị của bạn. Bản sao lưu là một tệp; đường liên kết chỉ chứa dữ liệu của bạn ở phần sau dấu thăng, phần mà trình duyệt không bao giờ gửi đến máy chủ.',
@@ -410,6 +432,11 @@ export const vi: UI = {
 <code class="formula">w(t) = w* + (w₀ − w*) · e^(−λt)   với λ = 10 · PAL / 7.700 mỗi ngày, w* = w₀ + (lượng ăn − tổng tiêu hao) / (10 · PAL)</code>
 <p>Từ đó suy ra lượng ăn mục tiêu (theo tốc độ hoặc thời hạn đã chọn) và thời gian cần thiết. Khoảng ước tính dịch tổng năng lượng tiêu hao về hai phía theo độ bất định của nó, cộng bình phương với ± 10 % mật độ năng lượng. Nếu trong trường hợp bất lợi không bao giờ đạt mục tiêu, chúng tôi nói rõ như vậy thay vì đưa ra một con số bịa đặt.</p>
 <p>Các mức tốc độ theo % cân nặng mỗi tuần: giảm 0,25 / 0,5 / 0,75 (cảnh báo từ 1 %, Garthe 2011, Helms 2014), tăng 0,1 / 0,25 / 0,5 (cảnh báo nếu vượt, Iraki 2019). Các cảnh báo khác: lượng ăn dưới 1.500 kcal (nam) hoặc 1.200 kcal (nữ) hay dưới mức trao đổi chất cơ bản, thâm hụt trên 25 % tổng tiêu hao, BMI mục tiêu dưới 18,5 (WHO) và tuổi dưới 18.</p>`,
+      },
+      {
+        id: 'macros',
+        h2: 'Phân bổ chất sinh năng lượng',
+        html: `<p>Phần phân bổ xuất phát từ mức ăn mục tiêu (hoặc tổng tiêu hao khi giữ cân). Protein tính bằng g mỗi kg và theo mục tiêu: giữ cân 1,2–1,8, tăng cân 1,6–2,2, giảm cân 1,8–2,4 g mỗi kg cân nặng (Morton 2018, Jäger và cs. 2017: tuyên bố của ISSN). Nếu biết mỡ cơ thể, mốc tham chiếu là khối lượng nạc: 1,5–2,2 / 2,0–2,7 / 2,3–3,1 g mỗi kg (Helms 2014 cho người gầy đang ăn kiêng).</p><p>Chất béo: lấy giá trị lớn hơn giữa 0,6 g mỗi kg cân nặng và 20 % năng lượng làm cận dưới, 35 % làm cận trên (giá trị tham chiếu DGE: 30–35 % tùy mức vận động). Carbohydrate là phần còn lại (4 kcal mỗi g). Khoảng của nó kết hợp khoảng protein và chất béo với độ không chắc chắn của tổng tiêu hao; với mức ăn mục tiêu cố định thì phần cuối bị bỏ vì mức ăn đã được chọn.</p><p>Có cảnh báo cho các tổ hợp bất khả thi (protein và chất béo tối thiểu vượt quá năng lượng), dưới 1.000 kcal, tỷ lệ protein rất cao (trên 35 % năng lượng hoặc trên 2,5 g mỗi kg), dưới 100 g carbohydrate, BMI từ 30 trở lên mà không có mỡ cơ thể, và dưới 18 tuổi. Đây là giá trị tham khảo, không phải tư vấn dinh dưỡng.</p>`,
       },
       {
         id: 'khoang',

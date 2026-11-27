@@ -228,7 +228,7 @@ const sites: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'supraili
     <details class="card group" data-group="measured">
       <summary class="group-head">
         <span class="step-no">6</span>
-        <span class="group-title">{F.measured.title} <span class="badge">★</span></span>
+        <span class="group-title">{F.measured.title} <span class="badge" aria-hidden="true"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 9.7 6l4.1.4-3.1 2.7.9 4-3.6-2.1-3.6 2.1.9-4L2.2 6.4 6.3 6z"/></svg></span></span>
         <span class="gain" data-gain="measured"></span>
         <span class="done-dot" data-done="measured" aria-hidden="true"></span>
       </summary>
@@ -900,7 +900,14 @@ const sites: SkinfoldSite[] = ['chest', 'abdomen', 'thigh', 'triceps', 'supraili
     color: var(--accent-strong);
   }
   .stage-chip.done::before {
-    content: '✓ ';
+    content: '';
+    display: inline-block;
+    width: 0.55em;
+    height: 0.3em;
+    margin-right: 0.45em;
+    border-left: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor;
+    transform: translateY(-0.12em) rotate(-45deg);
   }
   .tags {
     display: inline-flex;
